@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 from core.database import get_db
 from enums.wallet_registration_outcome import WalletRegistrationOutcome
+from services.wallet_enrollment_service import WalletEnrollmentError, wallet_enrollment_service
 from services.wallet_pass_service import wallet_pass_service
 from services.wallet_passkit_service import wallet_passkit_service
 
@@ -47,6 +48,14 @@ class DeviceUpdatesResponse(BaseModel):
 
     lastUpdated: str
     serialNumbers: list[str]
+
+
+class AddCardBody(BaseModel):
+    """Optional details a customer provides when adding a card."""
+
+    holderName: str | None = None
+    holderEmail: str | None = None
+    consent: bool = False
 
 
 @router.post("/v1/devices/{device_library_identifier}/registrations/{pass_type_identifier}/{serial_number}")
@@ -135,3 +144,24 @@ async def collect_device_logs(body: DeviceLogBody) -> Response:
     for entry in body.logs:
         logger.info("PassKit device log: %s", entry)
     return Response(status_code=status.HTTP_200_OK)
+
+
+@router.post("/add/{public_token}")
+async def add_card_to_wallet(
+    public_token: str,
+    body: AddCardBody | None = None,
+    db: Session = Depends(get_db),
+) -> Response:
+    """Public enrollment: mint (or reuse) a customer's card and serve its ``.pkpass``."""
+    payload = body or AddCardBody()
+    try:
+        _card, pkpass = wallet_enrollment_service.add_card(
+            db,
+            public_token=public_token,
+            holder_name=payload.holderName,
+            holder_email=payload.holderEmail,
+            consent=payload.consent,
+        )
+    except WalletEnrollmentError:
+        return Response(status_code=status.HTTP_404_NOT_FOUND)
+    return Response(content=pkpass, media_type=_PKPASS_MEDIA_TYPE)

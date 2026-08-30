@@ -28,6 +28,7 @@ class LoyaltyProgram(Base):
         user_id: Operator who owns this program (denormalized, no FK — house style).
         prospect_id: Merchant prospect this program was built for.
         order_id: Sale that turned the program into a paying subscription.
+        public_token: Unguessable handle in the public enrollment URL (``/wallet/add/{token}``).
         organization_name: Merchant name shown on the card (``organizationName``).
         stamps_required: Number of stamps that unlocks the reward.
         reward_label: What the customer earns (e.g. « 1 kebab offert »).
@@ -43,6 +44,7 @@ class LoyaltyProgram(Base):
     user_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
     prospect_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     order_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    public_token: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True, index=True)
 
     organization_name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(String(255), nullable=True)
