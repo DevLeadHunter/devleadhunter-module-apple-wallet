@@ -14,3 +14,12 @@ export type MerchantCardStatusBadge = {
   label: string
   badgeClass: string
 }
+
+/** Tone of a transient action confirmation. */
+export type MerchantFlashTone = 'success' | 'error' | 'warn' | 'neutral'
+
+/** A transient confirmation shown after a stamp/redeem action. */
+export type MerchantFlash = {
+  text: string
+  tone: MerchantFlashTone
+}

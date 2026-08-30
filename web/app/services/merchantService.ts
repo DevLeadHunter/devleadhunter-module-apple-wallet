@@ -1,5 +1,6 @@
 import type {
   MerchantCard,
+  MerchantCardAction,
   MerchantLoginCredentials,
   MerchantProgram,
   MerchantStats,
@@ -69,6 +70,34 @@ export class MerchantService {
   }
 
   /**
+   * Add a stamp to one of the merchant's customer cards.
+   * @param token - Merchant JWT.
+   * @param serialNumber - Card serial to stamp.
+   * @returns The card's refreshed state.
+   * @throws If the card is unknown or the request fails.
+   */
+  static async stampCard(token: string, serialNumber: string): Promise<MerchantCardAction> {
+    return MerchantService.authorizedPost<MerchantCardAction>(
+      `/api/v1/merchant/cards/${encodeURIComponent(serialNumber)}/stamp`,
+      token,
+    )
+  }
+
+  /**
+   * Hand over the reward and reset a completed card.
+   * @param token - Merchant JWT.
+   * @param serialNumber - Card serial to redeem.
+   * @returns The card's refreshed state.
+   * @throws If the reward is not reached or the request fails.
+   */
+  static async redeemCard(token: string, serialNumber: string): Promise<MerchantCardAction> {
+    return MerchantService.authorizedPost<MerchantCardAction>(
+      `/api/v1/merchant/cards/${encodeURIComponent(serialNumber)}/redeem`,
+      token,
+    )
+  }
+
+  /**
    * Perform an authenticated GET and parse the JSON body.
    * @param path - API path, starting with `/api/v1`.
    * @param token - Merchant JWT sent as a bearer token.
@@ -86,6 +115,30 @@ export class MerchantService {
 
     if (!response.ok) {
       throw new Error('Requête refusée')
+    }
+
+    return response.json()
+  }
+
+  /**
+   * Perform an authenticated POST and parse the JSON body.
+   * @param path - API path, starting with `/api/v1`.
+   * @param token - Merchant JWT sent as a bearer token.
+   * @returns The parsed response body.
+   * @throws If the response is not ok (surfacing the API detail message).
+   */
+  private static async authorizedPost<T>(path: string, token: string): Promise<T> {
+    const response: Response = await fetch(`${getApiUrl()}${path}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      const error: { detail: string } = await response.json().catch(() => ({ detail: 'Action refusée' }))
+      throw new Error(error.detail || 'Action refusée')
     }
 
     return response.json()
