@@ -33,6 +33,7 @@ class LoyaltyCard(Base):
         authentication_token: Per-card PassKit bearer token.
         stamps: Current stamp count.
         status: Card lifecycle.
+        current_offer: Offer text set by broadcasts/automations, shown on the card.
         holder_name / holder_email: The end customer, when known (often anonymous).
         marketing_consent_at: When the holder consented to marketing pushes (RGPD).
         last_stamped_at: When the last stamp was applied.
@@ -58,6 +59,7 @@ class LoyaltyCard(Base):
         server_default=LoyaltyCardStatus.ACTIVE.value,
         index=True,
     )
+    current_offer: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     holder_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     holder_email: Mapped[str | None] = mapped_column(String(255), nullable=True)

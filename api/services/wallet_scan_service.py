@@ -17,6 +17,7 @@ from enums.loyalty_card_status import LoyaltyCardStatus
 from models.loyalty_card import LoyaltyCard
 from models.loyalty_program import LoyaltyProgram
 from models.loyalty_scan_event import LoyaltyScanEvent
+from services.wallet_automation_service import wallet_automation_service
 from services.wallet_push_service import wallet_push_service
 
 logger = logging.getLogger(__name__)
@@ -101,6 +102,7 @@ class WalletScanService:
         )
         db.commit()
         db.refresh(card)
+        wallet_automation_service.schedule_on_scan(db, card, program)
         return WalletScanResult(
             card=card,
             required=program.stamps_required,
