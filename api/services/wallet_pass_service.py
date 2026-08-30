@@ -118,6 +118,10 @@ class WalletPassService:
         store_card: dict[str, object] = {"primaryFields": [stamps_field]}
         if program.reward_label:
             store_card["secondaryFields"] = [{"key": "reward", "label": "Récompense", "value": program.reward_label}]
+        if card.current_offer:
+            store_card["auxiliaryFields"] = [
+                {"key": "offer", "label": "Offre", "value": card.current_offer, "changeMessage": "%@"}
+            ]
         return {
             "formatVersion": 1,
             "passTypeIdentifier": signing_material.pass_type_identifier,

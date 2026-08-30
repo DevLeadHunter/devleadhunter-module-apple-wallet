@@ -11,17 +11,21 @@ from sqlalchemy.pool import StaticPool
 
 from core.database import Base
 from enums.loyalty_card_status import LoyaltyCardStatus
+from models.loyalty_automation import LoyaltyAutomation
 from models.loyalty_card import LoyaltyCard
 from models.loyalty_program import LoyaltyProgram
 from models.loyalty_scan_event import LoyaltyScanEvent
+from models.wallet_automation_job import WalletAutomationJob
 from models.wallet_credentials import WalletCredentials
 from models.wallet_device_registration import WalletDeviceRegistration
 from services.wallet_scan_service import WalletScanError, wallet_scan_service
 
 _MODULE_TABLES = [
     LoyaltyProgram.__table__,
+    LoyaltyAutomation.__table__,
     LoyaltyCard.__table__,
     LoyaltyScanEvent.__table__,
+    WalletAutomationJob.__table__,
     WalletCredentials.__table__,
     WalletDeviceRegistration.__table__,
 ]

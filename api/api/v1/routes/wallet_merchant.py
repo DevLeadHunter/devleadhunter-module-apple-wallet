@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from core.database import get_db
 from models.user import User
 from services.auth_service import get_current_active_user
+from services.wallet_automation_service import WalletAutomationError, wallet_automation_service
 from services.wallet_scan_service import WalletScanError, wallet_scan_service
 
 router = APIRouter(prefix="/wallet/merchant", tags=["wallet-merchant"])
@@ -36,6 +37,12 @@ class ScanResponse(BaseModel):
     pushed: bool
 
 
+class BroadcastResponse(BaseModel):
+    """How many cards a broadcast was scheduled for."""
+
+    scheduled: int
+
+
 @router.post("/scan", response_model=ScanResponse)
 async def scan_card(
     body: ScanBody,
@@ -56,3 +63,17 @@ async def scan_card(
         rewardReady=result.reward_ready,
         pushed=result.pushed,
     )
+
+
+@router.post("/automations/{automation_id}/broadcast", response_model=BroadcastResponse)
+async def broadcast_automation(
+    automation_id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+) -> BroadcastResponse:
+    """Fan a broadcast automation out to every active card of its program."""
+    try:
+        scheduled = wallet_automation_service.trigger_broadcast(db, current_user.id, automation_id)
+    except WalletAutomationError as error:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
+    return BroadcastResponse(scheduled=scheduled)
