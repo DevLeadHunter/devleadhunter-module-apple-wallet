@@ -1,17 +1,23 @@
 <template>
   <div class="space-y-6">
-    <div>
-      <NuxtLink
-        to="/dashboard/wallet"
-        class="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--app-ink-soft)] transition-colors hover:text-[var(--app-ink)]"
-      >
-        <UIcon name="i-lucide-arrow-left" class="h-3.5 w-3.5" />
-        Cartes de fidélité
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <NuxtLink
+          to="/dashboard/wallet"
+          class="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--app-ink-soft)] transition-colors hover:text-[var(--app-ink)]"
+        >
+          <UIcon name="i-lucide-arrow-left" class="h-3.5 w-3.5" />
+          Cartes de fidélité
+        </NuxtLink>
+        <h1 class="app-page-title mt-2">{{ isNew ? 'Nouveau programme' : 'Éditer le programme' }}</h1>
+        <p class="mt-1.5 max-w-2xl text-sm text-[var(--app-ink-soft)]">
+          La carte que le commerçant offre à ses clients — ses tampons, sa récompense et ses couleurs.
+        </p>
+      </div>
+      <NuxtLink v-if="!isNew" :to="`/dashboard/wallet/automations/${programId}`" class="app-btn-secondary shrink-0">
+        <UIcon name="i-lucide-zap" class="h-4 w-4" />
+        Automatisations
       </NuxtLink>
-      <h1 class="app-page-title mt-2">{{ isNew ? 'Nouveau programme' : 'Éditer le programme' }}</h1>
-      <p class="mt-1.5 max-w-2xl text-sm text-[var(--app-ink-soft)]">
-        La carte que le commerçant offre à ses clients — ses tampons, sa récompense et ses couleurs.
-      </p>
     </div>
 
     <div v-if="isLoading" class="flex justify-center py-20">
