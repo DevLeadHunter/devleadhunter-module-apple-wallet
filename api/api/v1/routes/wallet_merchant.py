@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from core.config import settings
 from core.database import get_db
 from enums.app_module import AppModule
 from models.user import User
@@ -17,6 +18,7 @@ from services.auth_service import get_current_active_user
 from services.module_service import module_service
 from services.wallet_automation_service import WalletAutomationError, wallet_automation_service
 from services.wallet_scan_service import WalletScanError, wallet_scan_service
+from services.wallet_subscription_service import WalletSubscriptionError, wallet_subscription_service
 
 router = APIRouter(prefix="/wallet/merchant", tags=["wallet-merchant"])
 
@@ -55,6 +57,28 @@ class BroadcastResponse(BaseModel):
     scheduled: int
 
 
+class SubscriptionCheckoutBody(BaseModel):
+    """Body to start a merchant subscription checkout."""
+
+    programId: int
+    successUrl: str | None = None
+    cancelUrl: str | None = None
+
+
+class SubscriptionCheckoutResponse(BaseModel):
+    """The hosted Stripe checkout URL to open."""
+
+    url: str
+
+
+class SubscriptionStatusResponse(BaseModel):
+    """A program's subscription state."""
+
+    programId: int
+    status: str
+    active: bool
+
+
 @router.post("/scan", response_model=ScanResponse)
 async def scan_card(
     body: ScanBody,
@@ -89,3 +113,47 @@ async def broadcast_automation(
     except WalletAutomationError as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
     return BroadcastResponse(scheduled=scheduled)
+
+
+@router.post("/subscription/checkout", response_model=SubscriptionCheckoutResponse)
+async def start_subscription_checkout(
+    body: SubscriptionCheckoutBody,
+    current_user: User = Depends(require_wallet_module),
+    db: Session = Depends(get_db),
+) -> SubscriptionCheckoutResponse:
+    """Open a Stripe subscription checkout (free trial, auto-debit) for a program."""
+    frontend = settings.frontend_url.rstrip("/")
+    success_url = body.successUrl or f"{frontend}/dashboard?wallet_subscription=success"
+    cancel_url = body.cancelUrl or f"{frontend}/dashboard?wallet_subscription=canceled"
+    try:
+        result = wallet_subscription_service.create_checkout(
+            db, current_user.id, body.programId, success_url=success_url, cancel_url=cancel_url
+        )
+    except WalletSubscriptionError as error:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
+    return SubscriptionCheckoutResponse(url=result["url"])
+
+
+@router.get("/subscription/{program_id}", response_model=SubscriptionStatusResponse)
+async def subscription_status(
+    program_id: int,
+    current_user: User = Depends(require_wallet_module),
+    db: Session = Depends(get_db),
+) -> SubscriptionStatusResponse:
+    """Return a program's subscription status and whether it currently grants access."""
+    status_label, active = wallet_subscription_service.program_status(db, program_id)
+    return SubscriptionStatusResponse(programId=program_id, status=status_label, active=active)
+
+
+@router.post("/subscription/{program_id}/cancel", response_model=SubscriptionStatusResponse)
+async def cancel_subscription(
+    program_id: int,
+    current_user: User = Depends(require_wallet_module),
+    db: Session = Depends(get_db),
+) -> SubscriptionStatusResponse:
+    """Cancel a program's subscription immediately."""
+    try:
+        record = wallet_subscription_service.cancel(db, current_user.id, program_id)
+    except WalletSubscriptionError as error:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
+    return SubscriptionStatusResponse(programId=program_id, status=record.status, active=False)
