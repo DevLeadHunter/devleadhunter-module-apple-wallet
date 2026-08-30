@@ -13,8 +13,10 @@ from sqlalchemy.orm import Session
 from core.config import settings
 from core.database import get_db
 from enums.app_module import AppModule
+from models.loyalty_program import LoyaltyProgram
 from models.user import User
 from services.auth_service import get_current_active_user
+from services.merchant_auth_service import merchant_auth_service
 from services.module_service import module_service
 from services.wallet_automation_service import WalletAutomationError, wallet_automation_service
 from services.wallet_scan_service import WalletScanError, wallet_scan_service
@@ -77,6 +79,13 @@ class SubscriptionStatusResponse(BaseModel):
     programId: int
     status: str
     active: bool
+
+
+class MerchantCredentialsResponse(BaseModel):
+    """Freshly provisioned merchant login, shown once for handover."""
+
+    email: str
+    password: str
 
 
 @router.post("/scan", response_model=ScanResponse)
@@ -157,3 +166,25 @@ async def cancel_subscription(
     except WalletSubscriptionError as error:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
     return SubscriptionStatusResponse(programId=program_id, status=record.status, active=False)
+
+
+@router.post("/{program_id}/login-credentials", response_model=MerchantCredentialsResponse)
+async def provision_merchant_login(
+    program_id: int,
+    current_user: User = Depends(require_wallet_module),
+    db: Session = Depends(get_db),
+) -> MerchantCredentialsResponse:
+    """Create (or reset) the merchant's login for a program and return it once for handover."""
+    program = (
+        db.query(LoyaltyProgram)
+        .filter(
+            LoyaltyProgram.id == program_id,
+            LoyaltyProgram.user_id == current_user.id,
+            LoyaltyProgram.deleted_at.is_(None),
+        )
+        .first()
+    )
+    if program is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Programme introuvable")
+    account, password = merchant_auth_service.provision(db, program_id, organization_name=program.organization_name)
+    return MerchantCredentialsResponse(email=account.email, password=password)
