@@ -137,10 +137,9 @@ onMounted(async (): Promise<void> => {
 .merchant-login__poster {
   position: relative;
   overflow: hidden;
-  padding: 2.5rem;
+  padding: 2.25rem 2.5rem;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   color: #f4efe7;
   background: radial-gradient(120% 90% at 50% 32%, #2b2620, #17130e 78%);
 }
@@ -148,9 +147,9 @@ onMounted(async (): Promise<void> => {
 .merchant-login__glow {
   position: absolute;
   left: 50%;
-  top: 38%;
-  width: 26rem;
-  height: 26rem;
+  top: 42%;
+  width: 24rem;
+  height: 24rem;
   transform: translate(-50%, -50%);
   background: radial-gradient(circle, rgba(232, 163, 60, 0.16), transparent 62%);
   pointer-events: none;
@@ -159,6 +158,7 @@ onMounted(async (): Promise<void> => {
 .merchant-login__brand {
   position: relative;
   z-index: 2;
+  flex: none;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -179,12 +179,15 @@ onMounted(async (): Promise<void> => {
 .merchant-login__body {
   position: relative;
   z-index: 2;
-  margin: auto 0;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   text-align: center;
-  gap: 1.6rem;
+  gap: 1.3rem;
+  padding: 1.25rem 0;
 }
 
 .merchant-login__eyebrow {
@@ -196,23 +199,24 @@ onMounted(async (): Promise<void> => {
 }
 
 .merchant-login__headline {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 600;
   line-height: 1.3;
   letter-spacing: -0.01em;
-  max-width: 22rem;
+  max-width: 20rem;
   color: #f7f2e9;
   text-wrap: balance;
 }
 
 .merchant-login__card {
   transform: rotate(-3deg);
-  filter: drop-shadow(0 30px 50px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 26px 46px rgba(0, 0, 0, 0.5));
 }
 
 .merchant-login__foot {
   position: relative;
   z-index: 2;
+  flex: none;
   font-size: 0.72rem;
   color: rgba(247, 242, 233, 0.45);
 }
@@ -225,13 +229,32 @@ onMounted(async (): Promise<void> => {
   background-color: var(--app-bg);
 }
 
-@media (max-width: 880px) {
+@media (min-width: 901px) and (max-height: 720px) {
+  .merchant-login__card {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
   .merchant-login {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .merchant-login__form {
+    order: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
   }
 
   .merchant-login__poster {
-    display: none;
+    order: 1;
+    padding: 3rem 1.75rem;
+  }
+
+  .merchant-login__body {
+    padding: 0;
   }
 }
 </style>
