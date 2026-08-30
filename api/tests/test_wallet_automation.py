@@ -190,3 +190,57 @@ def test_run_due_jobs_cancels_a_job_for_a_revoked_card(session: Session) -> None
 
     assert wallet_automation_service.run_due_jobs(db=session) == 0
     assert session.query(WalletAutomationJob).one().status == WalletAutomationJobStatus.CANCELLED.value
+
+
+def test_create_and_list_automations_are_scoped(session: Session) -> None:
+    """Creating an automation persists it; listing is scoped to the operator + program."""
+    program = _program(session, user_id=1)
+    session.commit()
+    created = wallet_automation_service.create(
+        session, 1, program.id, name="Offre weekend", trigger_type="broadcast", field_value="-10%"
+    )
+    assert created.id is not None
+    assert created.trigger_type == "broadcast"
+    assert created.is_active is True
+
+    assert [a.id for a in wallet_automation_service.list_for_program(session, 1, program.id)] == [created.id]
+    assert wallet_automation_service.list_for_program(session, 2, program.id) == []
+
+
+def test_create_rejects_an_invalid_trigger(session: Session) -> None:
+    """An unknown trigger type fails loudly."""
+    program = _program(session)
+    session.commit()
+    with pytest.raises(WalletAutomationError):
+        wallet_automation_service.create(session, 1, program.id, name="x", trigger_type="bogus")
+
+
+def test_update_applies_changes_and_is_scoped(session: Session) -> None:
+    """Update writes the edited fields; another operator cannot touch it; bad triggers are rejected."""
+    program = _program(session, user_id=1)
+    automation = _automation(session, program)
+    session.commit()
+
+    updated = wallet_automation_service.update(
+        session, 1, automation.id, {"name": "Relance", "is_active": False, "delay_minutes": 5}
+    )
+    assert updated.name == "Relance"
+    assert updated.is_active is False
+    assert updated.delay_minutes == 5
+
+    with pytest.raises(WalletAutomationError):
+        wallet_automation_service.update(session, 2, automation.id, {"name": "x"})
+    with pytest.raises(WalletAutomationError):
+        wallet_automation_service.update(session, 1, automation.id, {"trigger_type": "nope"})
+
+
+def test_delete_is_scoped(session: Session) -> None:
+    """Only the owner can delete an automation."""
+    program = _program(session, user_id=1)
+    automation = _automation(session, program)
+    session.commit()
+
+    with pytest.raises(WalletAutomationError):
+        wallet_automation_service.delete(session, 2, automation.id)
+    wallet_automation_service.delete(session, 1, automation.id)
+    assert wallet_automation_service.get_for_user(session, 1, automation.id) is None

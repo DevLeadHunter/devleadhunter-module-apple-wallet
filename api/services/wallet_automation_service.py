@@ -29,6 +29,9 @@ logger = logging.getLogger(__name__)
 
 _WORKER_INTERVAL_SECONDS = 60
 
+# Fields an operator may edit on an automation; ids/timestamps stay managed.
+_AUTOMATION_EDITABLE_FIELDS = ("name", "trigger_type", "delay_minutes", "field_value", "change_message", "is_active")
+
 
 class WalletAutomationError(RuntimeError):
     """Raised when a broadcast cannot be triggered (unknown or inactive automation)."""
@@ -123,6 +126,149 @@ class WalletAutomationService:
         if scheduled:
             db.commit()
         return scheduled
+
+    def list_for_program(self, db: Session, user_id: int, program_id: int) -> list[LoyaltyAutomation]:
+        """Return a program's automations, newest first.
+
+        Args:
+            db: Database session.
+            user_id: Operator who owns the program.
+            program_id: The program whose automations to list.
+
+        Returns:
+            The automations owned by the operator for that program.
+        """
+        return (
+            db.query(LoyaltyAutomation)
+            .filter(LoyaltyAutomation.program_id == program_id, LoyaltyAutomation.user_id == user_id)
+            .order_by(LoyaltyAutomation.id.desc())
+            .all()
+        )
+
+    def get_for_user(self, db: Session, user_id: int, automation_id: int) -> LoyaltyAutomation | None:
+        """Return one of the operator's automations, or ``None``.
+
+        Args:
+            db: Database session.
+            user_id: Operator who must own the automation.
+            automation_id: The automation to fetch.
+
+        Returns:
+            The automation, or ``None`` when it does not exist or is not owned.
+        """
+        return (
+            db.query(LoyaltyAutomation)
+            .filter(LoyaltyAutomation.id == automation_id, LoyaltyAutomation.user_id == user_id)
+            .first()
+        )
+
+    def create(
+        self,
+        db: Session,
+        user_id: int,
+        program_id: int,
+        *,
+        name: str | None,
+        trigger_type: str,
+        delay_minutes: int = 0,
+        field_value: str | None = None,
+        change_message: str | None = None,
+    ) -> LoyaltyAutomation:
+        """Create an automation for a program.
+
+        Args:
+            db: Database session.
+            user_id: Operator who owns the program.
+            program_id: The program the automation belongs to.
+            name: Human label for the automation.
+            trigger_type: ``on_scan`` or ``broadcast``.
+            delay_minutes: Minutes to wait before applying (clamped to >= 0).
+            field_value: The offer text written onto the card.
+            change_message: Lock-screen text (with ``%@``) pushed when it applies.
+
+        Returns:
+            The persisted automation.
+
+        Raises:
+            WalletAutomationError: When the trigger type is invalid.
+        """
+        automation = LoyaltyAutomation(
+            program_id=program_id,
+            user_id=user_id,
+            name=name,
+            trigger_type=self._validated_trigger(trigger_type),
+            delay_minutes=max(delay_minutes, 0),
+            field_value=field_value,
+            change_message=change_message,
+            is_active=True,
+        )
+        db.add(automation)
+        db.commit()
+        db.refresh(automation)
+        return automation
+
+    def update(self, db: Session, user_id: int, automation_id: int, changes: dict[str, object]) -> LoyaltyAutomation:
+        """Apply an operator's edits to one of their automations.
+
+        Args:
+            db: Database session.
+            user_id: Operator who must own the automation.
+            automation_id: The automation to update.
+            changes: The fields to set (already narrowed to those the caller sent).
+
+        Returns:
+            The updated automation.
+
+        Raises:
+            WalletAutomationError: When the automation is not found, or a trigger is invalid.
+        """
+        automation = self.get_for_user(db, user_id, automation_id)
+        if automation is None:
+            raise WalletAutomationError("Automatisation introuvable")
+        if "trigger_type" in changes:
+            changes["trigger_type"] = self._validated_trigger(changes["trigger_type"])
+        for field in _AUTOMATION_EDITABLE_FIELDS:
+            if field in changes:
+                setattr(automation, field, changes[field])
+        automation.delay_minutes = max(automation.delay_minutes, 0)
+        db.commit()
+        db.refresh(automation)
+        return automation
+
+    def delete(self, db: Session, user_id: int, automation_id: int) -> None:
+        """Delete one of the operator's automations.
+
+        Args:
+            db: Database session.
+            user_id: Operator who must own the automation.
+            automation_id: The automation to delete.
+
+        Raises:
+            WalletAutomationError: When the automation is not found.
+        """
+        automation = self.get_for_user(db, user_id, automation_id)
+        if automation is None:
+            raise WalletAutomationError("Automatisation introuvable")
+        db.delete(automation)
+        db.commit()
+
+    @staticmethod
+    def _validated_trigger(value: object) -> str:
+        """Return a valid trigger value, or raise.
+
+        Args:
+            value: The candidate trigger type.
+
+        Returns:
+            The validated trigger value.
+
+        Raises:
+            WalletAutomationError: When the value is not a known trigger.
+        """
+        try:
+            return LoyaltyAutomationTrigger(value).value
+        except ValueError as error:
+            raise WalletAutomationError("Type de déclencheur invalide") from error
 
     def run_due_jobs(self, db: Session | None = None) -> int:
         """Fire every pending job whose time has come.
