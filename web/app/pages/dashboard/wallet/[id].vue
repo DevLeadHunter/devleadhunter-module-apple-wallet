@@ -126,6 +126,49 @@
         </UiDlhButton>
       </div>
     </div>
+
+    <div v-if="!isNew && publicToken" class="app-card p-5">
+      <div class="mb-3 flex items-center justify-between gap-3">
+        <h2 class="text-sm font-semibold text-[var(--app-ink)]">Partager la carte</h2>
+        <NuxtLink :to="`/dashboard/wallet/chevalet/${programId}`" class="app-btn-secondary h-8 px-3 text-xs">
+          <UIcon name="i-lucide-printer" class="h-3.5 w-3.5" />
+          Imprimer le chevalet
+        </NuxtLink>
+      </div>
+      <p class="mb-4 text-xs text-[var(--app-ink-soft)]">
+        Le QR à poser sur le comptoir : vos clients le scannent pour ajouter leur carte à Apple Wallet.
+      </p>
+      <div class="flex flex-col gap-4 @xl:flex-row @xl:items-center">
+        <img
+          v-if="qrDataUrl"
+          :src="qrDataUrl"
+          alt="QR code d'enrôlement"
+          class="h-28 w-28 shrink-0 rounded-lg border border-[var(--app-line)] bg-white p-1.5"
+        />
+        <div class="min-w-0 flex-1 space-y-2">
+          <span class="app-label">Lien public</span>
+          <div class="flex items-center gap-2 rounded-lg border border-[var(--app-line)] bg-[var(--app-bg)] px-3 py-2">
+            <span class="min-w-0 flex-1 truncate font-mono text-xs text-[var(--app-ink)]">{{ enrollLink }}</span>
+            <button
+              type="button"
+              class="shrink-0 text-xs font-medium text-[var(--app-ink)] hover:underline"
+              @click="copyLink"
+            >
+              {{ linkCopied ? 'Copié' : 'Copier' }}
+            </button>
+          </div>
+          <a
+            :href="enrollLink"
+            target="_blank"
+            rel="noopener"
+            class="inline-flex items-center gap-1 text-xs font-medium text-[var(--app-ink-soft)] transition-colors hover:text-[var(--app-ink)]"
+          >
+            Ouvrir la page
+            <UIcon name="i-lucide-external-link" class="h-3 w-3" />
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -141,6 +184,7 @@ import type {
 } from '~/types/WalletProgram'
 import { WalletProgramService } from '~/services/walletProgramService'
 import { useToast } from '~/composables/useToast'
+import { useWalletEnrollLink } from '~/composables/useWalletEnrollLink'
 
 definePageMeta({
   layout: 'dashboard',
@@ -214,6 +258,11 @@ const programId: number | null = isNew ? null : Number(route.params.id)
 const isLoading: Ref<boolean> = ref(!isNew)
 const isSaving: Ref<boolean> = ref(false)
 
+const { buildLink, buildQr }: ReturnType<typeof useWalletEnrollLink> = useWalletEnrollLink()
+const publicToken: Ref<string | null> = ref(null)
+const qrDataUrl: Ref<string> = ref('')
+const linkCopied: Ref<boolean> = ref(false)
+
 const form: Ref<WalletProgramForm> = ref({
   organizationName: '',
   stampsRequired: 10,
@@ -244,6 +293,9 @@ const stageStyle: ComputedRef<Record<string, string>> = computed(
   }),
 )
 
+/** The program's public enrollment link (empty until it has a token). */
+const enrollLink: ComputedRef<string> = computed((): string => (publicToken.value ? buildLink(publicToken.value) : ''))
+
 /**
  * Apply a palette preset to the form colors.
  * @param palette - The chosen palette.
@@ -252,6 +304,22 @@ function applyPalette(palette: WalletColorPalette): void {
   form.value.backgroundColor = palette.background
   form.value.foregroundColor = palette.foreground
   form.value.labelColor = palette.labelColor
+}
+
+/** Copy the public enrollment link to the clipboard. */
+async function copyLink(): Promise<void> {
+  if (!enrollLink.value) {
+    return
+  }
+  try {
+    await navigator.clipboard.writeText(enrollLink.value)
+    linkCopied.value = true
+    setTimeout((): void => {
+      linkCopied.value = false
+    }, 1500)
+  } catch {
+    toast.error('Copie impossible')
+  }
 }
 
 /** Load the edited program into the form. */
@@ -271,6 +339,10 @@ async function load(): Promise<void> {
       foregroundColor: program.foregroundColor ?? DEFAULT_PALETTE.foreground,
       labelColor: program.labelColor ?? DEFAULT_PALETTE.labelColor,
       status: program.status,
+    }
+    publicToken.value = program.publicToken
+    if (program.publicToken) {
+      qrDataUrl.value = await buildQr(program.publicToken)
     }
   } catch {
     toast.error('Programme introuvable')

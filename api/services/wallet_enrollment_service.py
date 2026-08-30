@@ -46,6 +46,22 @@ class WalletEnrollmentService:
         db.commit()
         return program.public_token
 
+    def get_public_program(self, db: Session, public_token: str) -> LoyaltyProgram | None:
+        """Return the live program a public enrollment token points to, or ``None``.
+
+        Args:
+            db: Database session.
+            public_token: The token from the enrollment URL.
+
+        Returns:
+            The program, or ``None`` when the token matches nothing (unknown or deleted).
+        """
+        return (
+            db.query(LoyaltyProgram)
+            .filter(LoyaltyProgram.public_token == public_token, LoyaltyProgram.deleted_at.is_(None))
+            .first()
+        )
+
     def add_card(
         self,
         db: Session,
@@ -70,11 +86,7 @@ class WalletEnrollmentService:
         Raises:
             WalletEnrollmentError: When no active program matches the token.
         """
-        program = (
-            db.query(LoyaltyProgram)
-            .filter(LoyaltyProgram.public_token == public_token, LoyaltyProgram.deleted_at.is_(None))
-            .first()
-        )
+        program = self.get_public_program(db, public_token)
         if program is None:
             raise WalletEnrollmentError(f"No loyalty program for public token {public_token!r}.")
         card = self._existing_card(db, program, holder_email) or self._mint_card(

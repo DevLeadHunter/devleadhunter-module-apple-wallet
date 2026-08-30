@@ -156,3 +156,16 @@ def test_add_card_unknown_token_raises(session: Session) -> None:
     """An unknown public token fails loudly rather than minting an orphan card."""
     with pytest.raises(WalletEnrollmentError):
         wallet_enrollment_service.add_card(session, public_token="does-not-exist")
+
+
+def test_get_public_program_resolves_only_live_tokens(session: Session) -> None:
+    """A live token resolves its program; unknown or soft-deleted tokens resolve to None."""
+    program = _program(session)
+    session.commit()
+
+    assert wallet_enrollment_service.get_public_program(session, "tok-public") is not None
+    assert wallet_enrollment_service.get_public_program(session, "unknown") is None
+
+    program.deleted_at = datetime.datetime(2026, 1, 1)
+    session.commit()
+    assert wallet_enrollment_service.get_public_program(session, "tok-public") is None

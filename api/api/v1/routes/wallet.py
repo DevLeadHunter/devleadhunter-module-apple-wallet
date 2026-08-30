@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, Depends, Header, Query, Response, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -56,6 +56,18 @@ class AddCardBody(BaseModel):
     holderName: str | None = None
     holderEmail: str | None = None
     consent: bool = False
+
+
+class EnrollProgramResponse(BaseModel):
+    """Public branding a customer sees on a program's enrollment landing page."""
+
+    organizationName: str
+    stampsRequired: int
+    rewardLabel: str | None
+    logoUrl: str | None
+    backgroundColor: str | None
+    foregroundColor: str | None
+    labelColor: str | None
 
 
 @router.post("/v1/devices/{device_library_identifier}/registrations/{pass_type_identifier}/{serial_number}")
@@ -165,3 +177,20 @@ async def add_card_to_wallet(
     except WalletEnrollmentError:
         return Response(status_code=status.HTTP_404_NOT_FOUND)
     return Response(content=pkpass, media_type=_PKPASS_MEDIA_TYPE)
+
+
+@router.get("/enroll/{public_token}", response_model=EnrollProgramResponse)
+async def get_enrollment_program(public_token: str, db: Session = Depends(get_db)) -> EnrollProgramResponse:
+    """Public: the program's branding for its customer enrollment landing page."""
+    program = wallet_enrollment_service.get_public_program(db, public_token)
+    if program is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Programme introuvable")
+    return EnrollProgramResponse(
+        organizationName=program.organization_name,
+        stampsRequired=program.stamps_required,
+        rewardLabel=program.reward_label,
+        logoUrl=program.logo_url,
+        backgroundColor=program.background_color,
+        foregroundColor=program.foreground_color,
+        labelColor=program.label_color,
+    )
