@@ -154,3 +154,44 @@ def test_scan_rejects_a_revoked_card(session: Session) -> None:
     session.commit()
     with pytest.raises(WalletScanError):
         wallet_scan_service.record_stamp(session, 1, card.serial_number)
+
+
+def test_stamp_for_program_is_scoped_to_that_program(session: Session) -> None:
+    """A merchant stamps only cards of their own program."""
+    program = _program(session, stamps_required=3, user_id=1)
+    other = _program(session, stamps_required=3, user_id=2)
+    card = _card(session, program_id=program.id, serial="c1")
+    session.commit()
+
+    with pytest.raises(WalletScanError):
+        wallet_scan_service.stamp_for_program(session, other.id, "c1")
+
+    result = wallet_scan_service.stamp_for_program(session, program.id, "c1")
+    assert result.stamped is True
+    assert session.query(LoyaltyCard).filter_by(id=card.id).one().stamps == 1
+
+
+def test_redeem_resets_a_completed_card(session: Session) -> None:
+    """Redeeming a reward-ready card zeroes the stamps, reactivates it, and logs the event."""
+    program = _program(session, stamps_required=2)
+    card = _card(session, program_id=program.id, stamps=2, status=LoyaltyCardStatus.COMPLETED.value, serial="c1")
+    session.commit()
+
+    result = wallet_scan_service.redeem_for_program(session, program.id, "c1")
+
+    assert result.card.stamps == 0
+    stored = session.query(LoyaltyCard).filter_by(id=card.id).one()
+    assert stored.stamps == 0
+    assert stored.status == LoyaltyCardStatus.ACTIVE.value
+    event = session.query(LoyaltyScanEvent).filter_by(source="merchant_redeem").one()
+    assert event.stamps_delta == -2
+    assert event.stamps_after == 0
+
+
+def test_redeem_rejects_a_card_below_the_goal(session: Session) -> None:
+    """A card that has not reached its reward cannot be redeemed."""
+    program = _program(session, stamps_required=5)
+    _card(session, program_id=program.id, stamps=3, serial="c1")
+    session.commit()
+    with pytest.raises(WalletScanError):
+        wallet_scan_service.redeem_for_program(session, program.id, "c1")

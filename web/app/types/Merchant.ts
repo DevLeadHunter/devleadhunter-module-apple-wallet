@@ -34,6 +34,19 @@ export type MerchantCard = {
   addedToWalletAt: string | null
 }
 
+/** A card's refreshed state after a stamp or redeem, plus action feedback. */
+export type MerchantCardAction = {
+  serialNumber: string
+  stamps: number
+  status: string
+  holderName: string | null
+  lastStampedAt: string | null
+  addedToWalletAt: string | null
+  throttled: boolean
+  rewardReady: boolean
+  pushed: boolean
+}
+
 /** Credentials a merchant submits to `POST /merchant/login`. */
 export type MerchantLoginCredentials = {
   email: string

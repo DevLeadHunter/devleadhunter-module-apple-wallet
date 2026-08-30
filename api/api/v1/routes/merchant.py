@@ -14,9 +14,11 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from core.database import get_db
+from models.loyalty_card import LoyaltyCard
 from models.merchant_account import MerchantAccount
 from services.merchant_auth_service import get_current_merchant, merchant_auth_service
 from services.merchant_dashboard_service import merchant_dashboard_service
+from services.wallet_scan_service import WalletScanError, wallet_scan_service
 from services.wallet_subscription_service import wallet_subscription_service
 
 router = APIRouter(prefix="/merchant", tags=["merchant"])
@@ -70,6 +72,26 @@ class MerchantCardResponse(BaseModel):
     holderName: str | None
     lastStampedAt: datetime | None
     addedToWalletAt: datetime | None
+
+
+class MerchantCardActionResponse(MerchantCardResponse):
+    """A card's refreshed state after a stamp or redeem, plus action feedback."""
+
+    throttled: bool = False
+    rewardReady: bool = False
+    pushed: bool = False
+
+
+def _card_fields(card: LoyaltyCard) -> dict[str, object]:
+    """Serialize a card into the response field names shared by the list and the actions."""
+    return {
+        "serialNumber": card.serial_number,
+        "stamps": card.stamps,
+        "status": card.status,
+        "holderName": card.holder_name,
+        "lastStampedAt": card.last_stamped_at,
+        "addedToWalletAt": card.added_to_wallet_at,
+    }
 
 
 @router.post("/login", response_model=MerchantTokenResponse)
@@ -128,13 +150,38 @@ async def get_cards(
 ) -> list[MerchantCardResponse]:
     """Return the merchant's customer cards, most recently stamped first."""
     return [
-        MerchantCardResponse(
-            serialNumber=card.serial_number,
-            stamps=card.stamps,
-            status=card.status,
-            holderName=card.holder_name,
-            lastStampedAt=card.last_stamped_at,
-            addedToWalletAt=card.added_to_wallet_at,
-        )
-        for card in merchant_dashboard_service.cards(db, merchant.program_id)
+        MerchantCardResponse(**_card_fields(card)) for card in merchant_dashboard_service.cards(db, merchant.program_id)
     ]
+
+
+@router.post("/cards/{serial_number}/stamp", response_model=MerchantCardActionResponse)
+async def stamp_card(
+    serial_number: str,
+    merchant: MerchantAccount = Depends(get_current_merchant),
+    db: Session = Depends(get_db),
+) -> MerchantCardActionResponse:
+    """Add a stamp to one of the merchant's customer cards and return its refreshed state."""
+    try:
+        result = wallet_scan_service.stamp_for_program(db, merchant.program_id, serial_number)
+    except WalletScanError as error:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
+    return MerchantCardActionResponse(
+        **_card_fields(result.card),
+        throttled=result.throttled,
+        rewardReady=result.reward_ready,
+        pushed=result.pushed,
+    )
+
+
+@router.post("/cards/{serial_number}/redeem", response_model=MerchantCardActionResponse)
+async def redeem_card(
+    serial_number: str,
+    merchant: MerchantAccount = Depends(get_current_merchant),
+    db: Session = Depends(get_db),
+) -> MerchantCardActionResponse:
+    """Hand over the reward and reset a completed card, then return its refreshed state."""
+    try:
+        result = wallet_scan_service.redeem_for_program(db, merchant.program_id, serial_number)
+    except WalletScanError as error:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
+    return MerchantCardActionResponse(**_card_fields(result.card), pushed=result.pushed)

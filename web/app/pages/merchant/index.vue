@@ -54,12 +54,13 @@
             Aucune carte pour l'instant. Elles apparaîtront ici dès qu'un client ajoutera la vôtre à son Wallet.
           </p>
 
-          <BaseTable v-else min-width="34rem">
+          <BaseTable v-else min-width="42rem">
             <template #head>
               <BaseTableTh>Client</BaseTableTh>
               <BaseTableTh>Tampons</BaseTableTh>
               <BaseTableTh>Statut</BaseTableTh>
               <BaseTableTh align="right">Dernier tampon</BaseTableTh>
+              <BaseTableTh align="right" sr-only>Actions</BaseTableTh>
             </template>
 
             <BaseTableTr v-for="card in cards" :key="card.serialNumber">
@@ -92,6 +93,34 @@
                 class="text-sm whitespace-nowrap text-[var(--app-ink-soft)]"
               >
                 {{ formatShortMonthDate(card.lastStampedAt) || '—' }}
+              </BaseTableTd>
+              <BaseTableTd label="Actions" align="right">
+                <button
+                  v-if="card.status === 'completed'"
+                  type="button"
+                  class="app-btn-secondary h-8 px-3 text-xs"
+                  :disabled="actingSerial === card.serialNumber"
+                  @click="redeem(card)"
+                >
+                  <UIcon
+                    :name="actingSerial === card.serialNumber ? 'i-lucide-loader-circle' : 'i-lucide-gift'"
+                    :class="['h-3.5 w-3.5', actingSerial === card.serialNumber && 'animate-spin']"
+                  />
+                  Remettre
+                </button>
+                <button
+                  v-else
+                  type="button"
+                  class="app-btn-secondary h-8 px-3 text-xs"
+                  :disabled="actingSerial === card.serialNumber"
+                  @click="stamp(card)"
+                >
+                  <UIcon
+                    :name="actingSerial === card.serialNumber ? 'i-lucide-loader-circle' : 'i-lucide-plus'"
+                    :class="['h-3.5 w-3.5', actingSerial === card.serialNumber && 'animate-spin']"
+                  />
+                  Tampon
+                </button>
               </BaseTableTd>
             </BaseTableTr>
           </BaseTable>
@@ -144,14 +173,28 @@
     <div v-else class="app-card p-10 text-center">
       <p class="text-sm text-[var(--app-ink-soft)]">Impossible de charger votre programme. Réessayez plus tard.</p>
     </div>
+
+    <div
+      v-if="flash"
+      class="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-full px-4 py-2 text-sm font-medium shadow-[var(--app-shadow-soft)]"
+      :style="flashStyle"
+      role="status"
+    >
+      {{ flash.text }}
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import type { ComputedRef, Ref } from 'vue'
-import { computed, ref, onMounted } from 'vue'
-import type { MerchantCard, MerchantProgram, MerchantStats } from '~/types/Merchant'
-import type { MerchantCardStatusBadge, MerchantStatTile } from '~/types/MerchantDashboard'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
+import type { MerchantCard, MerchantCardAction, MerchantProgram, MerchantStats } from '~/types/Merchant'
+import type {
+  MerchantCardStatusBadge,
+  MerchantFlash,
+  MerchantFlashTone,
+  MerchantStatTile,
+} from '~/types/MerchantDashboard'
 import { useMerchantStore } from '~/stores/merchant'
 import { MerchantService } from '~/services/merchantService'
 import { formatShortMonthDate } from '~/utils/date'
@@ -166,6 +209,9 @@ const merchantStore: ReturnType<typeof useMerchantStore> = useMerchantStore()
 const stats: Ref<MerchantStats | null> = ref(null)
 const cards: Ref<MerchantCard[]> = ref([])
 const isLoading: Ref<boolean> = ref(true)
+const actingSerial: Ref<string | null> = ref(null)
+const flash: Ref<MerchantFlash | null> = ref(null)
+let flashTimer: ReturnType<typeof setTimeout> | null = null
 
 /** The logged-in merchant's program, from the session store. */
 const program: ComputedRef<MerchantProgram | null> = computed((): MerchantProgram | null => merchantStore.program)
@@ -182,6 +228,21 @@ const subscriptionLabel: ComputedRef<string> = computed((): string =>
 const subscriptionDotColor: ComputedRef<string> = computed((): string =>
   subscriptionActive.value ? 'var(--app-green)' : 'var(--app-ink-soft)',
 )
+
+/** Background/text style of the transient action flash, by tone. */
+const flashStyle: ComputedRef<Record<string, string>> = computed((): Record<string, string> => {
+  const tone: MerchantFlashTone = flash.value?.tone ?? 'neutral'
+  if (tone === 'success') {
+    return { backgroundColor: 'var(--app-green)', color: '#fbf9f3' }
+  }
+  if (tone === 'error') {
+    return { backgroundColor: 'var(--app-red)', color: '#fbf9f3' }
+  }
+  if (tone === 'warn') {
+    return { backgroundColor: 'var(--app-accent)', color: '#1d1a14' }
+  }
+  return { backgroundColor: 'var(--app-ink)', color: 'var(--app-surface)' }
+})
 
 /** Illustrative stamp count on the preview, so the card reads as a live one. */
 const sampleStamps: ComputedRef<number> = computed((): number => {
@@ -279,6 +340,102 @@ function statusBadge(status: string): MerchantCardStatusBadge {
   return { label: 'Active', badgeClass: 'app-badge' }
 }
 
+/**
+ * Flash a transient confirmation, auto-dismissed after a short delay.
+ * @param text - The message.
+ * @param tone - Its tone.
+ */
+function showFlash(text: string, tone: MerchantFlashTone): void {
+  flash.value = { text, tone }
+  if (flashTimer !== null) {
+    clearTimeout(flashTimer)
+  }
+  flashTimer = setTimeout((): void => {
+    flash.value = null
+  }, 2600)
+}
+
+/**
+ * Replace a card in the list with its refreshed state after an action.
+ * @param action - The action response carrying the card's new state.
+ */
+function replaceCard(action: MerchantCardAction): void {
+  const next: MerchantCard = {
+    serialNumber: action.serialNumber,
+    stamps: action.stamps,
+    status: action.status,
+    holderName: action.holderName,
+    lastStampedAt: action.lastStampedAt,
+    addedToWalletAt: action.addedToWalletAt,
+  }
+  cards.value = cards.value.map(
+    (card: MerchantCard): MerchantCard => (card.serialNumber === action.serialNumber ? next : card),
+  )
+}
+
+/** Refresh the headline counters after an action (best-effort). */
+async function refreshStats(): Promise<void> {
+  const token: string | null = merchantStore.token
+  if (!token) {
+    return
+  }
+  try {
+    stats.value = await MerchantService.getStats(token)
+  } catch {
+    // Keep the previous counters; the next navigation re-validates the session.
+  }
+}
+
+/**
+ * Add a stamp to a customer's card and reflect the result.
+ * @param card - The card to stamp.
+ */
+async function stamp(card: MerchantCard): Promise<void> {
+  const token: string | null = merchantStore.token
+  if (!token) {
+    return
+  }
+  actingSerial.value = card.serialNumber
+  try {
+    const action: MerchantCardAction = await MerchantService.stampCard(token, card.serialNumber)
+    replaceCard(action)
+    if (action.throttled) {
+      showFlash("Carte déjà tamponnée à l'instant", 'warn')
+    } else if (action.rewardReady) {
+      showFlash('Récompense atteinte !', 'success')
+    } else {
+      showFlash('Tampon ajouté', 'success')
+    }
+    await refreshStats()
+  } catch (error) {
+    showFlash(error instanceof Error ? error.message : 'Action impossible', 'error')
+  } finally {
+    actingSerial.value = null
+  }
+}
+
+/**
+ * Hand over the reward and reset a completed card.
+ * @param card - The card to redeem.
+ */
+async function redeem(card: MerchantCard): Promise<void> {
+  const token: string | null = merchantStore.token
+  if (!token) {
+    return
+  }
+  actingSerial.value = card.serialNumber
+  try {
+    const action: MerchantCardAction = await MerchantService.redeemCard(token, card.serialNumber)
+    replaceCard(action)
+    showFlash('Récompense remise', 'success')
+    await refreshStats()
+  } catch (error) {
+    showFlash(error instanceof Error ? error.message : 'Action impossible', 'error')
+  } finally {
+    actingSerial.value = null
+  }
+}
+
 /** Load the stats and customer cards for the logged-in merchant. */
 async function load(): Promise<void> {
   const token: string | null = merchantStore.token
@@ -304,5 +461,11 @@ async function load(): Promise<void> {
 
 onMounted(async (): Promise<void> => {
   await load()
+})
+
+onUnmounted((): void => {
+  if (flashTimer !== null) {
+    clearTimeout(flashTimer)
+  }
 })
 </script>
