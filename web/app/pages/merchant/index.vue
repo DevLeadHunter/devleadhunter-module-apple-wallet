@@ -1,99 +1,144 @@
 <template>
-  <div class="space-y-5">
-    <div class="flex flex-wrap items-start justify-between gap-3">
+  <div class="space-y-8">
+    <div class="flex flex-col gap-4 @2xl:flex-row @2xl:items-end @2xl:justify-between">
       <div>
-        <h1 class="app-page-title">Votre carte de fidélité</h1>
-        <p class="mt-1.5 max-w-xl text-sm text-[var(--app-ink-soft)]">
+        <p class="app-label flex items-center gap-2">
+          <LandingAsterisk class="text-[0.6rem] text-[var(--app-accent)]" />
+          Fidélité
+        </p>
+        <h1 class="app-page-title mt-2">Votre carte de fidélité</h1>
+        <p class="mt-1.5 text-sm text-[var(--app-ink-soft)]">
           Suivez les cartes de vos clients et l'état de votre programme, en direct.
         </p>
       </div>
-      <span
-        class="font-label inline-flex items-center gap-1.5 rounded-full border border-[var(--app-line)] px-2.5 py-1 text-[0.62rem] tracking-[0.08em] text-[var(--app-ink-soft)] uppercase"
-      >
+      <span class="app-badge" :class="subscriptionActive ? 'app-badge--success' : ''">
         <span class="h-1.5 w-1.5 rounded-full" :style="{ backgroundColor: subscriptionDotColor }" />
         {{ subscriptionLabel }}
       </span>
     </div>
 
-    <div v-if="isLoading" class="flex justify-center py-20">
-      <UiLoader />
+    <div v-if="isLoading" class="space-y-8">
+      <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div v-for="n in 4" :key="n" class="app-card h-24 animate-pulse"></div>
+      </div>
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div class="app-card h-80 animate-pulse lg:col-span-2"></div>
+        <div class="app-card h-80 animate-pulse"></div>
+      </div>
     </div>
 
     <template v-else-if="program">
-      <div class="grid grid-cols-1 gap-5 @3xl:grid-cols-[22rem_minmax(0,1fr)]">
-        <div class="app-card flex items-center justify-center overflow-hidden p-8" :style="stageStyle">
-          <UiWalletCardPreview
-            :organization-name="program.organizationName"
-            :stamps="sampleStamps"
-            :stamps-required="program.stampsRequired"
-            :reward-label="program.rewardLabel"
-            :logo-url="program.logoUrl"
-            :background-color="program.backgroundColor"
-            :foreground-color="program.foregroundColor"
-            :label-color="program.labelColor"
-            serial-number="apercu-0001"
-          />
+      <section class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div v-for="tile in statTiles" :key="tile.key" class="app-card flex flex-col gap-1.5 p-4">
+          <div class="flex items-center justify-between">
+            <p class="app-label">{{ tile.label }}</p>
+            <span :class="['flex h-8 w-8 items-center justify-center rounded-lg', tile.iconBackgroundClass]">
+              <UIcon :name="tile.icon" :class="['h-4 w-4', tile.iconColorClass]" />
+            </span>
+          </div>
+          <p class="text-2xl font-bold text-[var(--app-ink)] tabular-nums">{{ tile.value }}</p>
+          <p class="text-[11px] leading-snug text-[var(--app-ink-soft)]">{{ tile.hint }}</p>
+        </div>
+      </section>
+
+      <section class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div class="app-card overflow-hidden p-0 lg:col-span-2">
+          <div class="flex items-center justify-between border-b border-[var(--app-line)] px-4 py-3 md:px-5">
+            <h2 class="text-sm font-semibold text-[var(--app-ink)]">Vos clients</h2>
+            <span class="text-xs text-[var(--app-ink-soft)]">
+              {{ cards.length }} carte{{ cards.length > 1 ? 's' : '' }}
+            </span>
+          </div>
+
+          <p v-if="cards.length === 0" class="px-4 py-12 text-center text-sm text-[var(--app-ink-soft)]">
+            Aucune carte pour l'instant. Elles apparaîtront ici dès qu'un client ajoutera la vôtre à son Wallet.
+          </p>
+
+          <BaseTable v-else min-width="34rem">
+            <template #head>
+              <BaseTableTh>Client</BaseTableTh>
+              <BaseTableTh>Tampons</BaseTableTh>
+              <BaseTableTh>Statut</BaseTableTh>
+              <BaseTableTh align="right">Dernier tampon</BaseTableTh>
+            </template>
+
+            <BaseTableTr v-for="card in cards" :key="card.serialNumber">
+              <BaseTableTd label="Client">
+                <div class="flex items-center gap-3">
+                  <span
+                    class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--app-surface-2)] text-xs font-semibold text-[var(--app-ink)]"
+                  >
+                    {{ cardInitial(card) }}
+                  </span>
+                  <span class="text-sm font-medium text-[var(--app-ink)]">{{ card.holderName || 'Client' }}</span>
+                </div>
+              </BaseTableTd>
+              <BaseTableTd label="Tampons">
+                <div class="flex items-center gap-2.5">
+                  <div class="h-1.5 w-16 overflow-hidden rounded-full bg-[var(--app-surface-2)]">
+                    <div class="h-full rounded-full bg-[var(--app-ink)]" :style="{ width: stampWidth(card) }"></div>
+                  </div>
+                  <span class="text-sm font-semibold text-[var(--app-ink)] tabular-nums">
+                    {{ card.stamps }}/{{ program.stampsRequired }}
+                  </span>
+                </div>
+              </BaseTableTd>
+              <BaseTableTd label="Statut">
+                <span :class="statusBadge(card.status).badgeClass">{{ statusBadge(card.status).label }}</span>
+              </BaseTableTd>
+              <BaseTableTd
+                label="Dernier tampon"
+                align="right"
+                class="text-sm whitespace-nowrap text-[var(--app-ink-soft)]"
+              >
+                {{ formatShortMonthDate(card.lastStampedAt) || '—' }}
+              </BaseTableTd>
+            </BaseTableTr>
+          </BaseTable>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
-          <div v-for="tile in statTiles" :key="tile.key" class="app-card flex flex-col justify-between p-4">
-            <p class="app-label">{{ tile.label }}</p>
-            <p class="font-display mt-3 text-3xl font-semibold text-[var(--app-ink)]">{{ tile.value }}</p>
-            <p class="mt-1 text-xs text-[var(--app-ink-soft)]">{{ tile.hint }}</p>
+        <div class="app-card p-5">
+          <div class="mb-4 flex items-center justify-between">
+            <h2 class="text-sm font-semibold text-[var(--app-ink)]">Votre carte</h2>
+            <span class="app-label">Aperçu client</span>
+          </div>
+
+          <div class="flex items-center justify-center overflow-hidden rounded-lg p-5" :style="stageStyle">
+            <UiWalletCardPreview
+              :organization-name="program.organizationName"
+              :stamps="sampleStamps"
+              :stamps-required="program.stampsRequired"
+              :reward-label="program.rewardLabel"
+              :logo-url="program.logoUrl"
+              :background-color="program.backgroundColor"
+              :foreground-color="program.foregroundColor"
+              :label-color="program.labelColor"
+              serial-number="apercu-0001"
+            />
+          </div>
+
+          <div class="mt-4 divide-y divide-[var(--app-line-soft)]">
+            <div class="flex items-center gap-3 py-2.5 first:pt-0">
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--app-accent-soft)]">
+                <UIcon name="i-lucide-stamp" class="h-4 w-4 text-[var(--app-accent-ink)]" />
+              </span>
+              <div class="min-w-0 flex-1">
+                <p class="text-[11px] text-[var(--app-ink-soft)]">Objectif</p>
+                <p class="text-sm font-medium text-[var(--app-ink)]">{{ program.stampsRequired }} tampons</p>
+              </div>
+            </div>
+            <div v-if="program.rewardLabel" class="flex items-center gap-3 py-2.5">
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--app-green-soft)]">
+                <UIcon name="i-lucide-gift" class="h-4 w-4 text-[var(--app-green)]" />
+              </span>
+              <div class="min-w-0 flex-1">
+                <p class="text-[11px] text-[var(--app-ink-soft)]">Récompense</p>
+                <p class="truncate text-sm font-medium text-[var(--app-ink)]">{{ program.rewardLabel }}</p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div class="app-card overflow-hidden">
-        <div class="flex items-center justify-between border-b border-[var(--app-line)] px-4 py-3">
-          <p class="font-display text-sm font-semibold text-[var(--app-ink)]">Vos clients</p>
-          <span class="text-xs text-[var(--app-ink-soft)]"
-            >{{ cards.length }} carte{{ cards.length > 1 ? 's' : '' }}</span
-          >
-        </div>
-
-        <p v-if="cards.length === 0" class="px-4 py-10 text-center text-sm text-[var(--app-ink-soft)]">
-          Aucune carte pour l'instant. Elles apparaîtront ici dès qu'un client ajoutera la vôtre à son Wallet.
-        </p>
-
-        <div v-else class="overflow-x-auto">
-          <table class="w-full min-w-[32rem] text-sm">
-            <thead>
-              <tr class="border-b border-[var(--app-line)] text-left">
-                <th class="app-label px-4 py-2.5 font-medium">Client</th>
-                <th class="app-label px-4 py-2.5 font-medium">Tampons</th>
-                <th class="app-label px-4 py-2.5 font-medium">Statut</th>
-                <th class="app-label px-4 py-2.5 font-medium">Dernier tampon</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="card in cards"
-                :key="card.serialNumber"
-                class="border-b border-[var(--app-line)] last:border-0"
-              >
-                <td class="px-4 py-2.5 text-[var(--app-ink)]">{{ card.holderName || 'Client' }}</td>
-                <td class="px-4 py-2.5 text-[var(--app-ink)]">
-                  <span class="tabular-nums">{{ card.stamps }}</span>
-                  <span class="text-[var(--app-ink-soft)]"> / {{ program.stampsRequired }}</span>
-                </td>
-                <td class="px-4 py-2.5">
-                  <span class="inline-flex items-center gap-1.5 text-[var(--app-ink-soft)]">
-                    <span
-                      class="h-1.5 w-1.5 rounded-full"
-                      :style="{ backgroundColor: statusBadge(card.status).dotColor }"
-                    />
-                    {{ statusBadge(card.status).label }}
-                  </span>
-                </td>
-                <td class="px-4 py-2.5 text-[var(--app-ink-soft)]">
-                  {{ formatShortMonthDate(card.lastStampedAt) || '—' }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      </section>
     </template>
 
     <div v-else class="app-card p-10 text-center">
@@ -125,54 +170,113 @@ const isLoading: Ref<boolean> = ref(true)
 /** The logged-in merchant's program, from the session store. */
 const program: ComputedRef<MerchantProgram | null> = computed((): MerchantProgram | null => merchantStore.program)
 
+/** Whether the subscription currently grants access. */
+const subscriptionActive: ComputedRef<boolean> = computed((): boolean => program.value?.subscriptionActive ?? false)
+
+/** Subscription label shown as a badge in the header. */
+const subscriptionLabel: ComputedRef<string> = computed((): string =>
+  subscriptionActive.value ? 'Programme actif' : 'Programme en pause',
+)
+
+/** Dot color reflecting whether the subscription currently grants access. */
+const subscriptionDotColor: ComputedRef<string> = computed((): string =>
+  subscriptionActive.value ? 'var(--app-green)' : 'var(--app-ink-soft)',
+)
+
 /** Illustrative stamp count on the preview, so the card reads as a live one. */
 const sampleStamps: ComputedRef<number> = computed((): number => {
   const required: number = program.value?.stampsRequired ?? 0
   return Math.min(Math.max(1, Math.round(required * 0.4)), required)
 })
 
-/** The four headline counters, from the loaded stats. */
-const statTiles: ComputedRef<MerchantStatTile[]> = computed((): MerchantStatTile[] => [
-  { key: 'issued', label: 'Cartes créées', value: stats.value?.cardsIssued ?? 0, hint: 'Depuis le lancement' },
-  {
-    key: 'installed',
-    label: 'Dans un Wallet',
-    value: stats.value?.cardsInstalled ?? 0,
-    hint: 'Ajoutées par vos clients',
-  },
-  { key: 'rewards', label: 'Récompenses prêtes', value: stats.value?.rewardsReady ?? 0, hint: 'À offrir en boutique' },
-  { key: 'stamps', label: 'Tampons cumulés', value: stats.value?.totalStamps ?? 0, hint: 'Toutes cartes confondues' },
-])
-
-/** Subscription label shown as a pill in the header. */
-const subscriptionLabel: ComputedRef<string> = computed((): string =>
-  program.value?.subscriptionActive ? 'Programme actif' : 'Programme en pause',
-)
-
-/** Dot color reflecting whether the subscription currently grants access. */
-const subscriptionDotColor: ComputedRef<string> = computed((): string =>
-  program.value?.subscriptionActive ? 'var(--app-green)' : 'var(--app-ink-soft)',
-)
+/** The four headline counters, each with a semantic colored icon. */
+const statTiles: ComputedRef<MerchantStatTile[]> = computed((): MerchantStatTile[] => {
+  const current: MerchantStats | null = stats.value
+  const issued: number = current?.cardsIssued ?? 0
+  const installed: number = current?.cardsInstalled ?? 0
+  const installedHint: string =
+    issued > 0 ? `${Math.round((installed / issued) * 100)} % des cartes créées` : 'Ajoutées par vos clients'
+  return [
+    {
+      key: 'issued',
+      label: 'Cartes créées',
+      value: issued,
+      hint: 'Depuis le lancement',
+      icon: 'i-lucide-users',
+      iconColorClass: 'text-[var(--app-blue)]',
+      iconBackgroundClass: 'bg-[var(--app-blue-soft)]',
+    },
+    {
+      key: 'installed',
+      label: 'Dans un Wallet',
+      value: installed,
+      hint: installedHint,
+      icon: 'i-lucide-wallet',
+      iconColorClass: 'text-[var(--app-violet)]',
+      iconBackgroundClass: 'bg-[var(--app-violet-soft)]',
+    },
+    {
+      key: 'rewards',
+      label: 'Récompenses prêtes',
+      value: current?.rewardsReady ?? 0,
+      hint: 'À offrir en boutique',
+      icon: 'i-lucide-gift',
+      iconColorClass: 'text-[var(--app-green)]',
+      iconBackgroundClass: 'bg-[var(--app-green-soft)]',
+    },
+    {
+      key: 'stamps',
+      label: 'Tampons cumulés',
+      value: current?.totalStamps ?? 0,
+      hint: 'Toutes cartes confondues',
+      icon: 'i-lucide-stamp',
+      iconColorClass: 'text-[var(--app-accent-ink)]',
+      iconBackgroundClass: 'bg-[var(--app-accent-soft)]',
+    },
+  ]
+})
 
 /** Soft stage backdrop tinted with the brand color so the card sits on its own ground. */
 const stageStyle: ComputedRef<Record<string, string>> = computed((): Record<string, string> => {
   const background: string = program.value?.backgroundColor?.trim() || 'rgb(23, 23, 23)'
-  return { background: `radial-gradient(120% 120% at 50% 0%, ${background}22, transparent 70%)` }
+  return { background: `radial-gradient(120% 120% at 50% 0%, ${background}18, transparent 72%)` }
 })
 
 /**
- * Map a card status to a French label and a semantic dot color.
+ * First letter of a card holder's name, for the row avatar.
+ * @param card - The customer card.
+ * @returns The uppercase initial, or a neutral dot.
+ */
+function cardInitial(card: MerchantCard): string {
+  return card.holderName?.trim().charAt(0).toUpperCase() || '·'
+}
+
+/**
+ * Width of a card's stamp progress bar.
+ * @param card - The customer card.
+ * @returns A CSS width percentage, clamped to 100%.
+ */
+function stampWidth(card: MerchantCard): string {
+  const required: number = program.value?.stampsRequired ?? 0
+  if (required <= 0) {
+    return '0%'
+  }
+  return `${Math.min((card.stamps / required) * 100, 100)}%`
+}
+
+/**
+ * Map a card status to a French label and an `app-badge` variant.
  * @param status - Raw status from the API (`active`, `completed`, `revoked`).
  * @returns The badge descriptor.
  */
 function statusBadge(status: string): MerchantCardStatusBadge {
   if (status === 'completed') {
-    return { label: 'Récompense prête', dotColor: 'var(--app-green)' }
+    return { label: 'Récompense prête', badgeClass: 'app-badge app-badge--success' }
   }
   if (status === 'revoked') {
-    return { label: 'Révoquée', dotColor: 'var(--app-red)' }
+    return { label: 'Révoquée', badgeClass: 'app-badge app-badge--danger' }
   }
-  return { label: 'Active', dotColor: 'var(--app-ink-soft)' }
+  return { label: 'Active', badgeClass: 'app-badge' }
 }
 
 /** Load the stats and customer cards for the logged-in merchant. */
