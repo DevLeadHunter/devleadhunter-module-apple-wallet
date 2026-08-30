@@ -1,0 +1,193 @@
+<title>Carte de fidélité</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  /* ── Atelier tokens (light) ── */
+  :root {
+    --ui: 'IBM Plex Sans', system-ui, sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --app-bg: #f4f1e9;
+    --app-surface: #fbf9f3;
+    --app-surface-2: #ede9de;
+    --app-ink: #1d1a14;
+    --app-ink-soft: #6e6759;
+    --app-faint: #b7ae9c;
+    --app-line: #e1dbcc;
+    --app-line-soft: #eae5d8;
+    --app-accent: #e8a33c;
+    --app-green: #2f7d4e;
+    --app-green-soft: rgba(47, 125, 78, 0.12);
+    --app-btn-bg: #1d1a14;
+    --app-btn-text: #fbf9f3;
+    --shadow: 0 10px 30px -18px rgba(29, 26, 20, 0.35);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--app-bg); color: var(--app-ink); font-family: var(--ui); -webkit-font-smoothing: antialiased; }
+  h1, h2, p { margin: 0; }
+  svg { display: block; }
+
+  /* preview scaffold */
+  .scaffold { position: sticky; top: 0; z-index: 60; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding: 0.55rem 1.25rem; background: #14110c; color: var(--app-bg); }
+  .scaffold__label { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(251,249,243,0.55); }
+  .seg { display: inline-flex; padding: 3px; border-radius: 999px; background: rgba(255,255,255,0.08); }
+  .seg button { appearance: none; border: 0; cursor: pointer; font-family: var(--mono); font-size: 0.72rem; padding: 0.35rem 0.95rem; border-radius: 999px; background: transparent; color: rgba(251,249,243,0.7); transition: background 0.2s, color 0.2s; }
+  .seg button.is-active { background: var(--app-bg); color: var(--app-ink); }
+
+  /* primitives */
+  .label { font-family: var(--mono); font-size: 0.64rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--app-ink-soft); }
+  .title { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.01em; color: var(--app-ink); }
+  .input { height: 2.4rem; width: 100%; border-radius: 0.5rem; border: 1px solid var(--app-line); background: var(--app-surface); color: var(--app-ink); padding: 0 0.8rem; font-size: 0.9rem; font-family: var(--ui); }
+  .input:focus { outline: none; border-color: var(--app-ink); }
+  .btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; height: 2.75rem; padding: 0 1.1rem; border: 0; border-radius: 999px; background: var(--app-btn-bg); color: var(--app-btn-text); font-size: 0.9rem; font-weight: 600; font-family: var(--ui); cursor: pointer; transition: opacity 0.2s; width: 100%; }
+  .btn-primary:hover { opacity: 0.88; }
+  .card { border-radius: 0.75rem; border: 1px solid var(--app-line); background: var(--app-surface); }
+  .ico { width: 1.05rem; height: 1.05rem; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ── Wallet store-card (faithful to UiWalletCardPreview) ── */
+  .wc { position: relative; width: 100%; max-width: 19rem; border-radius: 1.25rem; padding: 1.15rem 1.25rem 1.35rem; box-shadow: 0 1px 1px rgba(0,0,0,0.14), 0 20px 44px -20px rgba(0,0,0,0.55); overflow: hidden; font-family: -apple-system, 'Segoe UI', system-ui, sans-serif; }
+  .wc__sheen { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0) 42%, rgba(0,0,0,0.12)); }
+  .wc > *:not(.wc__sheen) { position: relative; }
+  .wc-head { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+  .wc-brand { display: flex; align-items: center; gap: 0.55rem; min-width: 0; }
+  .wc-logo { width: 1.6rem; height: 1.6rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; border: 1px solid; font-size: 0.85rem; font-weight: 700; flex: none; }
+  .wc-org { font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wc-kind { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
+  .wc-primary { display: flex; flex-direction: column; gap: 0.1rem; margin-top: 1.4rem; }
+  .wc-flabel { font-size: 0.58rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em; }
+  .wc-fvalue { font-size: 1.9rem; font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums; }
+  .wc-stamps { display: flex; flex-wrap: wrap; gap: 0.38rem; margin-top: 0.85rem; }
+  .wc-stamp { width: 0.82rem; height: 0.82rem; border-radius: 999px; border: 1.5px solid; box-sizing: border-box; }
+  .wc-secondary { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; margin-top: 1.25rem; }
+  .wc-ftext { font-size: 0.8rem; font-weight: 600; }
+  .wc-barcode { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; margin-top: 1.35rem; padding: 0.7rem; border-radius: 0.75rem; background: #fff; }
+  .wc-qr { width: 5rem; height: 5rem; shape-rendering: crispEdges; fill: #05070d; }
+  .wc-serial { font-size: 0.58rem; font-weight: 500; letter-spacing: 0.04em; color: #6b7280; font-variant-numeric: tabular-nums; }
+
+  /* ── Landing ── */
+  .wrap { min-height: calc(100vh - 40px); display: flex; justify-content: center; padding: 2.5rem 1rem; }
+  .col { width: 100%; max-width: 22rem; }
+  .field { display: flex; flex-direction: column; gap: 0.4rem; }
+  .consent { display: flex; align-items: flex-start; gap: 0.6rem; cursor: pointer; }
+  .consent input { margin-top: 0.15rem; width: 1rem; height: 1rem; accent-color: var(--app-ink); }
+
+  /* ── Chevalet (poster) ── */
+  .stage { min-height: calc(100vh - 40px); display: flex; align-items: center; justify-content: center; padding: 2.5rem 1rem; }
+  .chevalet { max-width: 22rem; width: 100%; text-align: center; background: var(--app-surface); border: 1px solid var(--app-line); border-radius: 1rem; padding: 2.5rem 2rem; box-shadow: var(--shadow); }
+  .chevalet__brand { display: flex; align-items: center; justify-content: center; gap: 0.6rem; }
+  .chevalet__logo { width: 2.4rem; height: 2.4rem; border-radius: 0.55rem; display: inline-flex; align-items: center; justify-content: center; background: #3c2a21; color: #f5ece0; font-weight: 700; font-size: 1.1rem; }
+  .chevalet__name { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.01em; }
+  .chevalet__eyebrow { margin-top: 0.35rem; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--app-ink-soft); }
+  .chevalet__qr { width: 14rem; height: 14rem; margin: 1.5rem auto; display: block; }
+  .chevalet__cta { font-size: 1.05rem; font-weight: 600; }
+  .chevalet__reward { margin-top: 0.4rem; font-size: 0.9rem; color: var(--app-ink-soft); }
+  .chevalet__foot { margin-top: 1.5rem; font-size: 0.72rem; color: var(--app-faint); }
+
+  [hidden] { display: none !important; }
+</style>
+
+<div class="scaffold">
+  <span class="scaffold__label">Aperçu maquette · côté client</span>
+  <div class="seg" role="tablist">
+    <button data-view="landing" type="button" class="is-active">Page client</button>
+    <button data-view="chevalet" type="button">Chevalet comptoir</button>
+  </div>
+</div>
+
+<!-- ══════════ LANDING (customer) ══════════ -->
+<section id="view-landing">
+  <div class="wrap">
+    <div class="col">
+      <div style="display:flex;justify-content:center;margin-bottom:1.75rem">
+        <div class="wc" style="background:#3c2a21;color:#f5ece0">
+          <div class="wc__sheen"></div>
+          <div class="wc-head">
+            <div class="wc-brand"><span class="wc-logo" style="border-color:rgba(245,236,224,0.6)">C</span><span class="wc-org">Café Mirabeau</span></div>
+            <span class="wc-kind" style="color:rgba(245,236,224,0.6)">Fidélité</span>
+          </div>
+          <div class="wc-primary"><span class="wc-flabel" style="color:rgba(245,236,224,0.6)">Tampons</span><span class="wc-fvalue">0 / 10</span></div>
+          <div class="wc-stamps" id="landing-stamps"></div>
+          <div class="wc-secondary"><div><span class="wc-flabel" style="color:rgba(245,236,224,0.6)">Récompense</span><div class="wc-ftext">1 café offert</div></div></div>
+          <div class="wc-barcode"><svg class="wc-qr" viewBox="0 0 21 21" id="landing-qr"></svg><span class="wc-serial">votre-carte</span></div>
+        </div>
+      </div>
+
+      <div style="text-align:center">
+        <h1 class="title">Café Mirabeau</h1>
+        <p style="margin-top:0.4rem;font-size:0.9rem;color:var(--app-ink-soft);line-height:1.5">
+          10 tampons = <span style="font-weight:500;color:var(--app-ink)">1 café offert</span>. Ajoutez votre carte, elle vous suit dans votre téléphone.
+        </p>
+      </div>
+
+      <form style="margin-top:1.75rem;display:flex;flex-direction:column;gap:1rem" onsubmit="return false">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
+          <div class="field"><label class="label" for="c-name">Prénom</label><input id="c-name" class="input" value="Camille" /></div>
+          <div class="field"><label class="label" for="c-email">Email</label><input id="c-email" class="input" value="camille@email.fr" /></div>
+        </div>
+        <label class="consent">
+          <input type="checkbox" checked />
+          <span style="font-size:0.75rem;line-height:1.5;color:var(--app-ink-soft)">J'accepte de recevoir les offres de Café Mirabeau sur ma carte.</span>
+        </label>
+        <button class="btn-primary" type="submit">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+          Ajouter à Apple Wallet
+        </button>
+        <p style="text-align:center;font-size:0.68rem;color:var(--app-ink-soft)">Compatible iPhone. Prénom et email facultatifs.</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ CHEVALET (counter poster) ══════════ -->
+<section id="view-chevalet" hidden>
+  <div class="stage">
+    <div class="chevalet">
+      <div class="chevalet__brand"><span class="chevalet__logo">C</span><span class="chevalet__name">Café Mirabeau</span></div>
+      <p class="chevalet__eyebrow">Carte de fidélité</p>
+      <svg class="chevalet__qr" viewBox="0 0 25 25" id="chevalet-qr"></svg>
+      <p class="chevalet__cta">Scannez pour ajouter votre carte</p>
+      <p class="chevalet__reward">10 tampons = 1 café offert</p>
+      <p class="chevalet__foot">Ajout gratuit à Apple Wallet · iPhone</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  const buttons = document.querySelectorAll('.seg button');
+  buttons.forEach((b) => b.addEventListener('click', () => {
+    buttons.forEach((x) => x.classList.remove('is-active'));
+    b.classList.add('is-active');
+    const v = b.dataset.view;
+    document.getElementById('view-landing').hidden = v !== 'landing';
+    document.getElementById('view-chevalet').hidden = v !== 'chevalet';
+    window.scrollTo({ top: 0 });
+  }));
+
+  // empty stamps on the fresh landing card
+  const stampsEl = document.getElementById('landing-stamps');
+  for (let i = 0; i < 10; i += 1) {
+    const s = document.createElement('span');
+    s.className = 'wc-stamp';
+    s.style.borderColor = 'rgba(245,236,224,0.6)';
+    stampsEl.appendChild(s);
+  }
+
+  // ── Faux QR (decorative — the real app renders a scannable one via the qrcode lib) ──
+  const SVGNS = 'http://www.w3.org/2000/svg', FINDER = 7;
+  function buildQr(el, size, seed) {
+    let hash = 0;
+    for (let i = 0; i < seed.length; i += 1) hash = (hash * 31 + seed.charCodeAt(i)) % 2147483647;
+    for (let y = 0; y < size; y += 1) for (let x = 0; x < size; x += 1) {
+      const inF = (x < FINDER && y < FINDER) || (x >= size - FINDER && y < FINDER) || (x < FINDER && y >= size - FINDER);
+      let on = false;
+      if (inF) {
+        const lx = x < FINDER ? x : x - (size - FINDER), ly = y < FINDER ? y : y - (size - FINDER);
+        on = (lx === 0 || lx === 6 || ly === 0 || ly === 6) || (lx >= 2 && lx <= 4 && ly >= 2 && ly <= 4);
+      } else on = (hash + x * 7 + y * 13 + x * y) % 3 === 0;
+      if (on) { const r = document.createElementNS(SVGNS, 'rect'); r.setAttribute('x', x); r.setAttribute('y', y); r.setAttribute('width', 1); r.setAttribute('height', 1); el.appendChild(r); }
+    }
+  }
+  buildQr(document.getElementById('landing-qr'), 21, 'votre-carte');
+  const chevaletQr = document.getElementById('chevalet-qr');
+  chevaletQr.setAttribute('fill', '#1d1a14');
+  buildQr(chevaletQr, 25, 'fid.dibodev.fr/cafe-mirabeau');
+</script>

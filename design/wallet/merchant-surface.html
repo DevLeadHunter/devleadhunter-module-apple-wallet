@@ -1,0 +1,488 @@
+<title>Espace commerçant</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  /* ── Atelier tokens (light-only: the merchant surface is a focused POS-like tool) ── */
+  :root {
+    --ui: 'IBM Plex Sans', system-ui, sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --app-bg: #f4f1e9;
+    --app-surface: #fbf9f3;
+    --app-surface-2: #ede9de;
+    --app-ink: #1d1a14;
+    --app-ink-soft: #6e6759;
+    --app-faint: #b7ae9c;
+    --app-line: #e1dbcc;
+    --app-line-soft: #eae5d8;
+    --app-accent: #e8a33c;
+    --app-accent-ink: #9c6b14;
+    --app-accent-soft: rgba(232, 163, 60, 0.14);
+    --app-green: #2f7d4e;
+    --app-green-soft: rgba(47, 125, 78, 0.12);
+    --app-red: #bf4d33;
+    --app-red-soft: rgba(191, 77, 51, 0.12);
+    --app-blue: #4a6b8f;
+    --app-blue-soft: rgba(95, 127, 158, 0.16);
+    --app-violet: #7a63ad;
+    --app-violet-soft: rgba(141, 123, 184, 0.16);
+    --app-btn-bg: #1d1a14;
+    --app-btn-text: #fbf9f3;
+    --shadow: 0 10px 30px -18px rgba(29, 26, 20, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--app-bg); color: var(--app-ink); font-family: var(--ui); -webkit-font-smoothing: antialiased; }
+  h1, h2, p { margin: 0; }
+  .num { font-variant-numeric: tabular-nums; }
+  .muted { color: var(--app-ink-soft); }
+  svg { display: block; }
+
+  /* ── Preview scaffold (not part of the product) ── */
+  .scaffold {
+    position: sticky; top: 0; z-index: 60;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    padding: 0.55rem 1.25rem;
+    background: #14110c; color: var(--app-bg);
+  }
+  .scaffold__label { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(251,249,243,0.55); }
+  .seg { display: inline-flex; padding: 3px; border-radius: 999px; background: rgba(255,255,255,0.08); }
+  .seg button { appearance: none; border: 0; cursor: pointer; font-family: var(--mono); font-size: 0.72rem; padding: 0.35rem 0.95rem; border-radius: 999px; background: transparent; color: rgba(251,249,243,0.7); transition: background 0.2s, color 0.2s; }
+  .seg button.is-active { background: var(--app-bg); color: var(--app-ink); }
+
+  /* ── Primitives (mirror main.css) ── */
+  .card { border-radius: 0.75rem; border: 1px solid var(--app-line); background: var(--app-surface); }
+  .label { font-family: var(--mono); font-size: 0.64rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--app-ink-soft); }
+  .title { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.01em; color: var(--app-ink); }
+  .h2 { font-size: 0.875rem; font-weight: 600; color: var(--app-ink); }
+  .input { height: 2.4rem; width: 100%; border-radius: 0.5rem; border: 1px solid var(--app-line); background: var(--app-surface); color: var(--app-ink); padding: 0 0.8rem; font-size: 0.9rem; font-family: var(--ui); transition: border-color 0.2s; }
+  .input::placeholder { color: var(--app-faint); }
+  .input:focus { outline: none; border-color: var(--app-ink); }
+  .btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; height: 2.4rem; padding: 0 1.1rem; border: 0; border-radius: 999px; background: var(--app-btn-bg); color: var(--app-btn-text); font-size: 0.875rem; font-weight: 600; font-family: var(--ui); cursor: pointer; transition: opacity 0.2s; }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; height: 2.1rem; padding: 0 0.85rem; border-radius: 999px; border: 1px solid var(--app-line); background: var(--app-surface); color: var(--app-ink); font-size: 0.8rem; font-weight: 500; font-family: var(--ui); cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+  .btn-secondary:hover { border-color: var(--app-ink-soft); background: var(--app-surface-2); }
+  .pill { display: inline-flex; align-items: center; gap: 0.4rem; border-radius: 999px; border: 1px solid var(--app-line); padding: 0.3rem 0.7rem; font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--app-ink-soft); white-space: nowrap; }
+  .dot { width: 0.4rem; height: 0.4rem; border-radius: 999px; flex: none; }
+  .badge { display: inline-flex; align-items: center; gap: 0.4rem; border-radius: 999px; padding: 0.2rem 0.6rem; font-size: 0.72rem; font-weight: 500; background: var(--app-surface-2); color: var(--app-ink-soft); white-space: nowrap; }
+  .badge--success { background: var(--app-green-soft); color: var(--app-green); }
+  .badge--danger { background: var(--app-red-soft); color: var(--app-red); }
+  .ico { width: 1rem; height: 1rem; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .ico-sm { width: 0.85rem; height: 0.85rem; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ── Merchant chrome ── */
+  .topbar { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--app-line); background: var(--app-surface); padding: 0.8rem 1.5rem; }
+  .topbar__in { max-width: 68rem; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+  .brand { display: flex; align-items: center; gap: 0.6rem; min-width: 0; }
+  .brand__name { font-weight: 600; letter-spacing: -0.01em; font-size: 1rem; }
+  .logo-mark { width: 1.75rem; height: 1.75rem; border-radius: 0.45rem; flex: none; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; background: var(--app-ink); color: var(--app-surface); }
+
+  .page { max-width: 68rem; margin: 0 auto; padding: 1.75rem 1.5rem 3rem; display: flex; flex-direction: column; gap: 2rem; }
+  .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .sub { font-size: 0.875rem; color: var(--app-ink-soft); line-height: 1.5; margin-top: 0.4rem; }
+  .head__actions { display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap; }
+
+  /* KPI strip */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+  @media (max-width: 780px) { .kpis { grid-template-columns: 1fr 1fr; } }
+  .kpi { padding: 1rem 1.05rem; display: flex; flex-direction: column; gap: 0.5rem; transition: transform 0.2s ease, border-color 0.2s ease; }
+  .kpi:hover { transform: translateY(-2px); border-color: var(--app-ink-soft); }
+  .kpi__top { display: flex; align-items: center; justify-content: space-between; }
+  .kpi__val { font-size: 1.65rem; font-weight: 700; letter-spacing: -0.01em; color: var(--app-ink); font-variant-numeric: tabular-nums; line-height: 1; }
+  .kpi__hint { font-size: 0.7rem; color: var(--app-ink-soft); line-height: 1.35; }
+
+  /* Bento */
+  .bento { display: grid; grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+  @media (max-width: 860px) { .bento { grid-template-columns: 1fr; } }
+  .panel { padding: 1.25rem 1.35rem; }
+  .panel__head { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 1rem; }
+
+  /* Client list */
+  .crow { display: flex; align-items: center; gap: 0.85rem; padding: 0.7rem 0; border-top: 1px solid var(--app-line-soft); }
+  .crow:first-child { border-top: 0; }
+  .avatar { width: 2.15rem; height: 2.15rem; border-radius: 0.6rem; flex: none; display: flex; align-items: center; justify-content: center; background: var(--app-surface-2); color: var(--app-ink); font-size: 0.8rem; font-weight: 600; }
+  .crow__main { min-width: 0; flex: 1; }
+  .crow__name { font-size: 0.875rem; font-weight: 500; color: var(--app-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .crow__meta { font-size: 0.72rem; color: var(--app-ink-soft); margin-top: 0.05rem; }
+  .crow__right { display: flex; align-items: center; gap: 0.7rem; flex: none; }
+  .pbar { width: 4.5rem; height: 0.4rem; border-radius: 999px; background: var(--app-surface-2); overflow: hidden; }
+  .pbar__fill { height: 100%; border-radius: 999px; background: var(--app-ink); }
+  .crow__count { font-size: 0.8rem; font-weight: 600; color: var(--app-ink); font-variant-numeric: tabular-nums; width: 2.6rem; text-align: right; }
+  @media (max-width: 520px) { .pbar, .crow__count { display: none; } }
+
+  /* Card identity panel */
+  .stage { border-radius: 0.65rem; display: flex; align-items: center; justify-content: center; padding: 1.5rem 1rem; margin-bottom: 1.1rem; }
+  .facts { display: flex; flex-direction: column; }
+  .fact { display: flex; align-items: center; gap: 0.7rem; padding: 0.7rem 0; border-top: 1px solid var(--app-line-soft); }
+  .fact:first-child { border-top: 0; padding-top: 0; }
+  .chip { width: 2rem; height: 2rem; border-radius: 0.55rem; flex: none; display: flex; align-items: center; justify-content: center; border: 1px solid var(--app-line); }
+  .chip--amber { background: var(--app-accent-soft); color: var(--app-accent-ink); border-color: transparent; }
+  .chip--green { background: var(--app-green-soft); color: var(--app-green); border-color: transparent; }
+  .chip--blue { background: var(--app-blue-soft); color: var(--app-blue); border-color: transparent; }
+  .chip--violet { background: var(--app-violet-soft); color: var(--app-violet); border-color: transparent; }
+  .chip--sm { width: 1.85rem; height: 1.85rem; border-radius: 0.5rem; }
+
+  /* Client table (mirrors BaseTable / dlh-card-table) */
+  .mtable { width: 100%; border-collapse: collapse; min-width: 34rem; }
+  .mtable thead tr { background: var(--app-surface-2); }
+  .mtable th { text-align: left; border-bottom: 1px solid var(--app-line); padding: 0.6rem 1.25rem; }
+  .mtable td { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--app-line-soft); vertical-align: middle; }
+  .mtable tbody tr:last-child td { border-bottom: 0; }
+  .mtable tbody tr { transition: background 0.15s ease; }
+  .mtable tbody tr:hover { background: color-mix(in srgb, var(--app-surface-2) 55%, transparent); }
+  .cell-client { display: flex; align-items: center; gap: 0.75rem; }
+  .cell-stamps { display: flex; align-items: center; gap: 0.65rem; }
+  /* Mobile: stack the table into cards (mirrors dlh-card-table). */
+  @media (max-width: 640px) {
+    .mtable { min-width: 0; display: block; }
+    .mtable thead { display: none; }
+    .mtable tbody, .mtable tr, .mtable td { display: block; }
+    .mtable tr { border-bottom: 0; border: 1px solid var(--app-line); border-radius: 0.6rem; padding: 0.4rem 0.9rem; margin: 0.75rem; }
+    .mtable td { padding: 0.45rem 0; border-bottom: 0; }
+    .mtable td[data-label] { display: flex; align-items: center; justify-content: space-between; gap: 1rem; text-align: right; }
+    .mtable td[data-label]::before { content: attr(data-label); font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--app-ink-soft); text-align: left; }
+    .mtable td[data-label='Client'] { justify-content: flex-start; }
+    .mtable td[data-label='Client']::before { display: none; }
+  }
+  .fact__main { min-width: 0; flex: 1; }
+  .fact__label { font-size: 0.68rem; color: var(--app-ink-soft); }
+  .fact__val { font-size: 0.85rem; font-weight: 500; color: var(--app-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .copy { border: 0; background: transparent; cursor: pointer; color: var(--app-ink-soft); padding: 0.3rem; border-radius: 0.4rem; transition: background 0.2s, color 0.2s; }
+  .copy:hover { background: var(--app-surface-2); color: var(--app-ink); }
+
+  /* ── Wallet store-card (faithful to UiWalletCardPreview) ── */
+  .wc { position: relative; width: 100%; max-width: 19rem; border-radius: 1.25rem; padding: 1.15rem 1.25rem 1.35rem; box-shadow: 0 1px 1px rgba(0,0,0,0.14), 0 22px 44px -20px rgba(0,0,0,0.55); overflow: hidden; font-family: -apple-system, 'Segoe UI', system-ui, sans-serif; }
+  .wc__sheen { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0) 42%, rgba(0,0,0,0.12)); }
+  .wc > *:not(.wc__sheen) { position: relative; }
+  .wc-head { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+  .wc-brand { display: flex; align-items: center; gap: 0.55rem; min-width: 0; }
+  .wc-logo { width: 1.6rem; height: 1.6rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; border: 1px solid; font-size: 0.85rem; font-weight: 700; flex: none; }
+  .wc-org { font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wc-kind { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
+  .wc-primary { display: flex; flex-direction: column; gap: 0.1rem; margin-top: 1.4rem; }
+  .wc-flabel { font-size: 0.58rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em; }
+  .wc-fvalue { font-size: 1.9rem; font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums; }
+  .wc-stamps { display: flex; flex-wrap: wrap; gap: 0.38rem; margin-top: 0.85rem; }
+  .wc-stamp { width: 0.82rem; height: 0.82rem; border-radius: 999px; border: 1.5px solid; box-sizing: border-box; }
+  .wc-secondary { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; margin-top: 1.25rem; }
+  .wc-ftext { font-size: 0.8rem; font-weight: 600; }
+  .wc-barcode { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; margin-top: 1.35rem; padding: 0.7rem; border-radius: 0.75rem; background: #fff; }
+  .wc-qr { width: 5rem; height: 5rem; shape-rendering: crispEdges; fill: #05070d; }
+  .wc-serial { font-size: 0.58rem; font-weight: 500; letter-spacing: 0.04em; color: #6b7280; font-variant-numeric: tabular-nums; }
+
+  /* ── Login split ── */
+  .login { display: grid; grid-template-columns: 1.05fr 0.95fr; min-height: calc(100vh - 40px); }
+  .poster { position: relative; overflow: hidden; padding: 2.25rem 2.5rem; display: flex; flex-direction: column; color: #f4efe7; background: radial-gradient(120% 90% at 50% 32%, #2b2620, #17130e 78%); }
+  .poster__brand { flex: none; display: flex; align-items: center; gap: 0.6rem; position: relative; z-index: 2; }
+  .poster__brand .brand__name { color: #f7f2e9; }
+  .poster__body { flex: 1; min-height: 0; position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 1.3rem; padding: 1.25rem 0; }
+  .poster__eyebrow { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(247,242,233,0.55); }
+  .poster__title { font-size: 1.4rem; font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; max-width: 20rem; color: #f7f2e9; text-wrap: balance; }
+  .poster__card-wrap { transform: rotate(-3deg); filter: drop-shadow(0 26px 46px rgba(0,0,0,0.5)); }
+  .poster__foot { flex: none; position: relative; z-index: 2; font-size: 0.72rem; color: rgba(247,242,233,0.45); }
+  .poster__glow { position: absolute; left: 50%; top: 42%; width: 24rem; height: 24rem; transform: translate(-50%,-50%); background: radial-gradient(circle, rgba(232,163,60,0.16), transparent 62%); pointer-events: none; }
+
+  .form-side { display: flex; align-items: center; justify-content: center; padding: 2.5rem 1.5rem; background: var(--app-bg); }
+
+  /* Short viewports: drop the card so the headline never collides with it. */
+  @media (min-width: 901px) and (max-height: 720px) { .poster__card-wrap { display: none; } }
+
+  /* Stacked: form first (above the fold), visual below — never scroll to log in. */
+  @media (max-width: 900px) {
+    .login { display: flex; flex-direction: column; min-height: 0; }
+    .form-side { order: 0; min-height: 100vh; min-height: 100dvh; }
+    .poster { order: 1; padding: 3rem 1.75rem; }
+    .poster__body { padding: 0; }
+  }
+  .form-col { width: 100%; max-width: 21rem; }
+  .brandline { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.4rem; }
+  .field { display: flex; flex-direction: column; gap: 0.4rem; }
+  .pwd { position: relative; }
+  .pwd .input { padding-right: 2.6rem; }
+  .pwd__eye { position: absolute; right: 0.6rem; top: 50%; transform: translateY(-50%); border: 0; background: transparent; cursor: pointer; color: var(--app-ink-soft); display: inline-flex; padding: 0.2rem; }
+
+  [hidden] { display: none !important; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="scaffold">
+  <span class="scaffold__label">Aperçu maquette · surface commerçant</span>
+  <div class="seg" role="tablist">
+    <button data-view="login" type="button">Connexion</button>
+    <button data-view="dashboard" type="button" class="is-active">Tableau de bord</button>
+  </div>
+</div>
+
+<!-- ══════════ LOGIN ══════════ -->
+<section id="view-login" hidden>
+  <div class="login">
+    <aside class="poster">
+      <div class="poster__glow"></div>
+      <div class="poster__brand">
+        <span class="brand__name">Fidélité</span>
+        <span class="pill" style="border-color:rgba(247,242,233,0.2);color:rgba(247,242,233,0.7)">Apple Wallet</span>
+      </div>
+      <div class="poster__body">
+        <p class="poster__eyebrow">Module cartes de fidélité</p>
+        <h2 class="poster__title">Vos clients reviennent. Leur carte est déjà dans leur téléphone.</h2>
+        <div class="poster__card-wrap" id="poster-card"></div>
+      </div>
+      <p class="poster__foot">Espace réservé aux commerces partenaires.</p>
+    </aside>
+
+    <main class="form-side">
+      <div class="form-col">
+        <div class="brandline">
+          <span class="brand__name" style="font-size:1.05rem">Fidélité</span>
+          <span class="pill">Apple Wallet</span>
+        </div>
+        <h1 class="title">Espace commerçant</h1>
+        <p class="sub">Connectez-vous pour suivre votre carte de fidélité.</p>
+
+        <form style="margin-top:1.6rem;display:flex;flex-direction:column;gap:1rem" onsubmit="return false">
+          <div class="field">
+            <label class="label" for="m-email">Identifiant</label>
+            <input id="m-email" class="input" type="email" value="cafe-mirabeau-8f3a@merchant.dibodev.fr" />
+          </div>
+          <div class="field">
+            <label class="label" for="m-pwd">Mot de passe</label>
+            <div class="pwd">
+              <input id="m-pwd" class="input" type="password" value="raisin-verre-42" />
+              <button class="pwd__eye" type="button" id="eye" aria-label="Afficher le mot de passe">
+                <svg class="ico" viewBox="0 0 24 24"><path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+          <button class="btn-primary" type="submit" style="width:100%;margin-top:0.3rem">Se connecter</button>
+        </form>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ══════════ DASHBOARD ══════════ -->
+<section id="view-dashboard">
+  <header class="topbar">
+    <div class="topbar__in">
+      <div class="brand">
+        <span class="logo-mark" style="background:#3c2a21;color:#f5ece0">C</span>
+        <span class="brand__name">Café Mirabeau</span>
+        <span class="pill">Fidélité</span>
+      </div>
+      <button class="btn-secondary" type="button">
+        <svg class="ico-sm" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+        Déconnexion
+      </button>
+    </div>
+  </header>
+
+  <main class="page">
+    <!-- Header -->
+    <div class="head">
+      <div>
+        <p class="label eyebrow">
+          <svg width="12" height="12" viewBox="0 0 24 24" style="stroke:var(--app-accent);stroke-width:2;fill:none;stroke-linecap:round"><path d="M12 6v12"/><path d="M17.196 9 6.804 15"/><path d="m6.804 9 10.392 6"/></svg>
+          Fidélité
+        </p>
+        <h1 class="title" style="margin-top:0.5rem">Votre carte de fidélité</h1>
+        <p class="sub">Suivez les cartes de vos clients et l'état de votre programme, en direct.</p>
+      </div>
+      <div class="head__actions">
+        <span class="pill"><span class="dot" style="background:var(--app-green)"></span>Programme actif</span>
+        <button class="btn-secondary" type="button">
+          <svg class="ico-sm" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          Lien public
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI strip -->
+    <section class="kpis">
+      <div class="card kpi">
+        <div class="kpi__top"><span class="label">Cartes créées</span>
+          <span class="chip chip--sm chip--blue"><svg class="ico-sm" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+        </div>
+        <span class="kpi__val">128</span><span class="kpi__hint">Depuis le lancement</span>
+      </div>
+      <div class="card kpi">
+        <div class="kpi__top"><span class="label">Dans un Wallet</span>
+          <span class="chip chip--sm chip--violet"><svg class="ico-sm" viewBox="0 0 24 24"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg></span>
+        </div>
+        <span class="kpi__val">96</span><span class="kpi__hint">75 % des cartes créées</span>
+      </div>
+      <div class="card kpi">
+        <div class="kpi__top"><span class="label">Récompenses prêtes</span>
+          <span class="chip chip--sm chip--green"><svg class="ico-sm" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 5 12 8c0-3 2-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg></span>
+        </div>
+        <span class="kpi__val">7</span><span class="kpi__hint">À offrir en boutique</span>
+      </div>
+      <div class="card kpi">
+        <div class="kpi__top"><span class="label">Tampons cumulés</span>
+          <span class="chip chip--sm chip--amber"><svg class="ico-sm" viewBox="0 0 24 24"><path d="M5 22h14"/><path d="M19.27 13.73A2.5 2.5 0 0 0 17.5 13h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1.5c0-.66-.26-1.3-.73-1.77Z"/><path d="M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-6 0c0 2 1 2 1 3.5V13"/></svg></span>
+        </div>
+        <span class="kpi__val">743</span><span class="kpi__hint">Toutes cartes confondues</span>
+      </div>
+    </section>
+
+    <!-- Bento: clients (wide) + card identity (narrow) -->
+    <section class="bento">
+      <div class="card" style="overflow:hidden">
+        <div class="panel__head" style="padding:0.95rem 1.25rem;border-bottom:1px solid var(--app-line);margin-bottom:0">
+          <h2 class="h2">Vos clients</h2>
+          <span class="muted" style="font-size:0.75rem">6 cartes actives</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="mtable">
+            <thead>
+              <tr>
+                <th class="label">Client</th>
+                <th class="label">Tampons</th>
+                <th class="label">Statut</th>
+                <th class="label" style="text-align:right">Dernier tampon</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card panel">
+        <div class="panel__head">
+          <h2 class="h2">Votre carte</h2>
+          <span class="pill">Aperçu client</span>
+        </div>
+        <div class="stage" id="stage">
+          <div class="wc" style="background:#3c2a21;color:#f5ece0">
+            <div class="wc__sheen"></div>
+            <div class="wc-head">
+              <div class="wc-brand">
+                <span class="wc-logo" style="border-color:rgba(245,236,224,0.6)">C</span>
+                <span class="wc-org">Café Mirabeau</span>
+              </div>
+              <span class="wc-kind" style="color:rgba(245,236,224,0.6)">Fidélité</span>
+            </div>
+            <div class="wc-primary">
+              <span class="wc-flabel" style="color:rgba(245,236,224,0.6)">Tampons</span>
+              <span class="wc-fvalue">4 / 10</span>
+            </div>
+            <div class="wc-stamps" id="stamps"></div>
+            <div class="wc-secondary">
+              <div><span class="wc-flabel" style="color:rgba(245,236,224,0.6)">Récompense</span><div class="wc-ftext">1 café offert</div></div>
+            </div>
+            <div class="wc-barcode">
+              <svg class="wc-qr" viewBox="0 0 21 21" id="qr" role="img" aria-label="QR de la carte"></svg>
+              <span class="wc-serial">mirabeau-0007</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="facts">
+          <div class="fact">
+            <span class="chip chip--amber"><svg class="ico-sm" viewBox="0 0 24 24"><path d="M5 22h14"/><path d="M19.27 13.73A2.5 2.5 0 0 0 17.5 13h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1.5c0-.66-.26-1.3-.73-1.77Z"/><path d="M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-6 0c0 2 1 2 1 3.5V13"/></svg></span>
+            <div class="fact__main"><div class="fact__label">Objectif</div><div class="fact__val">10 tampons</div></div>
+          </div>
+          <div class="fact">
+            <span class="chip chip--green"><svg class="ico-sm" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 5 12 8c0-3 2-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg></span>
+            <div class="fact__main"><div class="fact__label">Récompense</div><div class="fact__val">1 café offert</div></div>
+          </div>
+          <div class="fact">
+            <span class="chip chip--blue"><svg class="ico-sm" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>
+            <div class="fact__main"><div class="fact__label">Lien public</div><div class="fact__val">fid.dibodev.fr/cafe-mirabeau</div></div>
+            <button class="copy" aria-label="Copier le lien"><svg class="ico-sm" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</section>
+
+<script>
+  const buttons = document.querySelectorAll('.seg button');
+  buttons.forEach((b) => b.addEventListener('click', () => {
+    buttons.forEach((x) => x.classList.remove('is-active'));
+    b.classList.add('is-active');
+    const v = b.dataset.view;
+    document.getElementById('view-login').hidden = v !== 'login';
+    document.getElementById('view-dashboard').hidden = v !== 'dashboard';
+    window.scrollTo({ top: 0 });
+  }));
+
+  const eye = document.getElementById('eye');
+  if (eye) eye.addEventListener('click', () => {
+    const i = document.getElementById('m-pwd');
+    i.type = i.type === 'password' ? 'text' : 'password';
+  });
+
+  // stage tint from the card colour
+  document.getElementById('stage').style.background = 'radial-gradient(120% 120% at 50% 0%, #3c2a2118, transparent 72%)';
+
+  // ── Wallet card builder (reused for dashboard + login poster) ──
+  const FG = '#f5ece0', LABEL = 'rgba(245,236,224,0.6)';
+  function fillStamps(el, filled, required) {
+    for (let i = 1; i <= required; i += 1) {
+      const s = document.createElement('span');
+      s.className = 'wc-stamp';
+      if (i <= filled) { s.style.backgroundColor = FG; s.style.borderColor = FG; }
+      else { s.style.borderColor = LABEL; }
+      el.appendChild(s);
+    }
+  }
+  const SVGNS = 'http://www.w3.org/2000/svg', SIZE = 21, FINDER = 7;
+  function buildQr(el, seed) {
+    let hash = 0;
+    for (let i = 0; i < seed.length; i += 1) hash = (hash * 31 + seed.charCodeAt(i)) % 2147483647;
+    for (let y = 0; y < SIZE; y += 1) for (let x = 0; x < SIZE; x += 1) {
+      const inF = (x < FINDER && y < FINDER) || (x >= SIZE - FINDER && y < FINDER) || (x < FINDER && y >= SIZE - FINDER);
+      let on = false;
+      if (inF) {
+        const lx = x < FINDER ? x : x - (SIZE - FINDER), ly = y < FINDER ? y : y - (SIZE - FINDER);
+        on = (lx === 0 || lx === 6 || ly === 0 || ly === 6) || (lx >= 2 && lx <= 4 && ly >= 2 && ly <= 4);
+      } else on = (hash + x * 7 + y * 13 + x * y) % 3 === 0;
+      if (on) { const r = document.createElementNS(SVGNS, 'rect'); r.setAttribute('x', x); r.setAttribute('y', y); r.setAttribute('width', 1); r.setAttribute('height', 1); el.appendChild(r); }
+    }
+  }
+  fillStamps(document.getElementById('stamps'), 4, 10);
+  buildQr(document.getElementById('qr'), 'mirabeau-0007');
+
+  // login poster card (clone of the dashboard card markup)
+  const poster = document.getElementById('poster-card');
+  if (poster) {
+    poster.innerHTML =
+      '<div class="wc" style="background:#3c2a21;color:#f5ece0;width:19rem">' +
+      '<div class="wc__sheen"></div>' +
+      '<div class="wc-head"><div class="wc-brand"><span class="wc-logo" style="border-color:rgba(245,236,224,0.6)">C</span><span class="wc-org">Café Mirabeau</span></div><span class="wc-kind" style="color:rgba(245,236,224,0.6)">Fidélité</span></div>' +
+      '<div class="wc-primary"><span class="wc-flabel" style="color:rgba(245,236,224,0.6)">Tampons</span><span class="wc-fvalue">7 / 10</span></div>' +
+      '<div class="wc-stamps" id="pstamps"></div>' +
+      '<div class="wc-secondary"><div><span class="wc-flabel" style="color:rgba(245,236,224,0.6)">Récompense</span><div class="wc-ftext">1 café offert</div></div></div>' +
+      '<div class="wc-barcode"><svg class="wc-qr" viewBox="0 0 21 21" id="pqr"></svg><span class="wc-serial">mirabeau-0042</span></div></div>';
+    fillStamps(document.getElementById('pstamps'), 7, 10);
+    buildQr(document.getElementById('pqr'), 'mirabeau-0042');
+  }
+
+  // ── Client rows ──
+  const CUSTOMERS = [
+    { name: 'Camille Rousseau', stamps: 8, status: 'active', last: 'aujourd’hui' },
+    { name: 'Sofia Nardone', stamps: 10, status: 'completed', last: 'hier' },
+    { name: 'Yanis Berger', stamps: 3, status: 'active', last: 'il y a 3 j' },
+    { name: 'Léa Dubois', stamps: 6, status: 'active', last: 'il y a 5 j' },
+    { name: 'Thomas Meyer', stamps: 10, status: 'completed', last: 'il y a 1 sem.' },
+    { name: 'Inès Faure', stamps: 1, status: 'active', last: 'il y a 2 sem.' },
+  ];
+  const rows = document.getElementById('rows');
+  CUSTOMERS.forEach((c) => {
+    const initials = c.name.split(' ').map((p) => p[0]).slice(0, 2).join('');
+    const pct = Math.round((c.stamps / 10) * 100);
+    const badge = c.status === 'completed'
+      ? '<span class="badge badge--success"><svg class="ico-sm" viewBox="0 0 24 24" style="width:0.72rem;height:0.72rem"><path d="M20 6 9 17l-5-5"/></svg>Récompense prête</span>'
+      : '<span class="badge">Active</span>';
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td data-label="Client"><div class="cell-client"><span class="avatar">' + initials + '</span>' +
+        '<span class="crow__name">' + c.name + '</span></div></td>' +
+      '<td data-label="Tampons"><div class="cell-stamps"><div class="pbar"><div class="pbar__fill" style="width:' + pct + '%"></div></div>' +
+        '<span class="crow__count">' + c.stamps + '/10</span></div></td>' +
+      '<td data-label="Statut">' + badge + '</td>' +
+      '<td data-label="Dernier tampon" style="text-align:right"><span class="muted" style="font-size:0.8rem">' + c.last + '</span></td>';
+    rows.appendChild(tr);
+  });
+</script>
