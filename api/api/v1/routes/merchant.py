@@ -9,17 +9,28 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from core.database import get_db
 from models.loyalty_card import LoyaltyCard
+from models.loyalty_program import LoyaltyProgram
 from models.merchant_account import MerchantAccount
 from services.merchant_auth_service import get_current_merchant, merchant_auth_service
 from services.merchant_dashboard_service import merchant_dashboard_service
+from services.wallet_automation_service import WalletAutomationError, wallet_automation_service
 from services.wallet_scan_service import WalletScanError, wallet_scan_service
 from services.wallet_subscription_service import wallet_subscription_service
+
+from .wallet_merchant import (
+    AUTOMATION_FIELD_MAP,
+    AutomationBody,
+    AutomationResponse,
+    AutomationUpdateBody,
+    BroadcastResponse,
+    automation_to_response,
+)
 
 router = APIRouter(prefix="/merchant", tags=["merchant"])
 
@@ -185,3 +196,100 @@ async def redeem_card(
     except WalletScanError as error:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
     return MerchantCardActionResponse(**_card_fields(result.card), pushed=result.pushed)
+
+
+def _merchant_program(db: Session, merchant: MerchantAccount) -> LoyaltyProgram:
+    """Return the merchant's own program (its owner scopes the shared automation service)."""
+    program = db.query(LoyaltyProgram).filter(LoyaltyProgram.id == merchant.program_id).first()
+    if program is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Programme introuvable")
+    return program
+
+
+@router.get("/automations", response_model=list[AutomationResponse])
+async def list_my_automations(
+    merchant: MerchantAccount = Depends(get_current_merchant),
+    db: Session = Depends(get_db),
+) -> list[AutomationResponse]:
+    """List the merchant's own automations."""
+    return [
+        automation_to_response(automation)
+        for automation in wallet_automation_service.list_by_program(db, merchant.program_id)
+    ]
+
+
+@router.post("/automations", response_model=AutomationResponse)
+async def create_my_automation(
+    body: AutomationBody,
+    merchant: MerchantAccount = Depends(get_current_merchant),
+    db: Session = Depends(get_db),
+) -> AutomationResponse:
+    """Create an automation for the merchant's own program."""
+    program = _merchant_program(db, merchant)
+    try:
+        automation = wallet_automation_service.create(
+            db,
+            program.user_id,
+            merchant.program_id,
+            name=body.name,
+            trigger_type=body.triggerType,
+            delay_minutes=body.delayMinutes,
+            field_value=body.fieldValue,
+            change_message=body.changeMessage,
+        )
+    except WalletAutomationError as error:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
+    return automation_to_response(automation)
+
+
+@router.patch("/automations/{automation_id}", response_model=AutomationResponse)
+async def update_my_automation(
+    automation_id: int,
+    body: AutomationUpdateBody,
+    merchant: MerchantAccount = Depends(get_current_merchant),
+    db: Session = Depends(get_db),
+) -> AutomationResponse:
+    """Edit one of the merchant's own automations."""
+    automation = wallet_automation_service.get_for_program(db, merchant.program_id, automation_id)
+    if automation is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Automatisation introuvable")
+    provided = body.model_dump(exclude_unset=True)
+    changes: dict[str, object] = {
+        AUTOMATION_FIELD_MAP[key]: value for key, value in provided.items() if key in AUTOMATION_FIELD_MAP
+    }
+    try:
+        updated = wallet_automation_service.update(db, automation.user_id, automation_id, changes)
+    except WalletAutomationError as error:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
+    return automation_to_response(updated)
+
+
+@router.delete("/automations/{automation_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_my_automation(
+    automation_id: int,
+    merchant: MerchantAccount = Depends(get_current_merchant),
+    db: Session = Depends(get_db),
+) -> Response:
+    """Delete one of the merchant's own automations."""
+    automation = wallet_automation_service.get_for_program(db, merchant.program_id, automation_id)
+    if automation is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Automatisation introuvable")
+    wallet_automation_service.delete(db, automation.user_id, automation_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/automations/{automation_id}/broadcast", response_model=BroadcastResponse)
+async def broadcast_my_automation(
+    automation_id: int,
+    merchant: MerchantAccount = Depends(get_current_merchant),
+    db: Session = Depends(get_db),
+) -> BroadcastResponse:
+    """Fan one of the merchant's broadcast automations out to every active card."""
+    automation = wallet_automation_service.get_for_program(db, merchant.program_id, automation_id)
+    if automation is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Automatisation introuvable")
+    try:
+        scheduled = wallet_automation_service.trigger_broadcast(db, automation.user_id, automation_id)
+    except WalletAutomationError as error:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
+    return BroadcastResponse(scheduled=scheduled)

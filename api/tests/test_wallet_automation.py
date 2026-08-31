@@ -244,3 +244,16 @@ def test_delete_is_scoped(session: Session) -> None:
         wallet_automation_service.delete(session, 2, automation.id)
     wallet_automation_service.delete(session, 1, automation.id)
     assert wallet_automation_service.get_for_user(session, 1, automation.id) is None
+
+
+def test_list_and_get_by_program_are_program_scoped(session: Session) -> None:
+    """Program-scoped reads return a program's own automations and reject another's."""
+    program_a = _program(session, user_id=1)
+    program_b = _program(session, user_id=1)
+    auto_a = _automation(session, program_a)
+    _automation(session, program_b)
+    session.commit()
+
+    assert [a.id for a in wallet_automation_service.list_by_program(session, program_a.id)] == [auto_a.id]
+    assert wallet_automation_service.get_for_program(session, program_a.id, auto_a.id) is not None
+    assert wallet_automation_service.get_for_program(session, program_b.id, auto_a.id) is None

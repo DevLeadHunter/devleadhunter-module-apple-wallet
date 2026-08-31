@@ -162,6 +162,40 @@ class WalletAutomationService:
             .first()
         )
 
+    def list_by_program(self, db: Session, program_id: int) -> list[LoyaltyAutomation]:
+        """Return a program's automations, newest first (program-scoped, for the merchant surface).
+
+        Args:
+            db: Database session.
+            program_id: The program whose automations to list.
+
+        Returns:
+            The program's automations.
+        """
+        return (
+            db.query(LoyaltyAutomation)
+            .filter(LoyaltyAutomation.program_id == program_id)
+            .order_by(LoyaltyAutomation.id.desc())
+            .all()
+        )
+
+    def get_for_program(self, db: Session, program_id: int, automation_id: int) -> LoyaltyAutomation | None:
+        """Return one of a program's automations, or ``None`` (program-scoped).
+
+        Args:
+            db: Database session.
+            program_id: The program the automation must belong to.
+            automation_id: The automation to fetch.
+
+        Returns:
+            The automation, or ``None`` when it does not exist or is not in the program.
+        """
+        return (
+            db.query(LoyaltyAutomation)
+            .filter(LoyaltyAutomation.id == automation_id, LoyaltyAutomation.program_id == program_id)
+            .first()
+        )
+
     def create(
         self,
         db: Session,
