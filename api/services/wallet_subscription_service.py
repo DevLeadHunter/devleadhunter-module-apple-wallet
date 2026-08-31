@@ -16,7 +16,7 @@ import stripe
 from sqlalchemy.orm import Session
 
 from core.config import settings
-from enums.wallet_subscription_status import ACCESS_GRANTED_STATUSES, WalletSubscriptionStatus
+from enums.wallet_subscription_status import ACCESS_CUT_STATUSES, ACCESS_GRANTED_STATUSES, WalletSubscriptionStatus
 from models.loyalty_program import LoyaltyProgram
 from models.wallet_subscription import WalletSubscription
 
@@ -124,6 +124,23 @@ class WalletSubscriptionService:
         """
         record = self._latest_for_program(db, program_id)
         return record is not None and record.status in ACCESS_GRANTED_STATUSES
+
+    def has_access(self, db: Session, program_id: int) -> bool:
+        """Whether a program may still issue and stamp cards (the access gate).
+
+        Grace is granted while there is no subscription yet (before billing is set up) or
+        one is still running; access is cut only once a subscription lapses (``past_due``)
+        or is canceled.
+
+        Args:
+            db: Database session.
+            program_id: Program to check.
+
+        Returns:
+            ``True`` unless the program's latest subscription has lapsed or ended.
+        """
+        record = self._latest_for_program(db, program_id)
+        return record is None or record.status not in ACCESS_CUT_STATUSES
 
     def program_status(self, db: Session, program_id: int) -> tuple[str, bool]:
         """Return a program's subscription status label and whether it grants access.

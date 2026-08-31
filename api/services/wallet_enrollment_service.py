@@ -17,6 +17,7 @@ from enums.loyalty_card_status import LoyaltyCardStatus
 from models.loyalty_card import LoyaltyCard
 from models.loyalty_program import LoyaltyProgram
 from services.wallet_pass_service import wallet_pass_service
+from services.wallet_subscription_service import wallet_subscription_service
 
 _SERIAL_BYTES = 16
 _TOKEN_BYTES = 24
@@ -89,6 +90,8 @@ class WalletEnrollmentService:
         program = self.get_public_program(db, public_token)
         if program is None:
             raise WalletEnrollmentError(f"No loyalty program for public token {public_token!r}.")
+        if not wallet_subscription_service.has_access(db, program.id):
+            raise WalletEnrollmentError(f"Loyalty program {public_token!r} is suspended.")
         card = self._existing_card(db, program, holder_email) or self._mint_card(
             db, program, holder_name=holder_name, holder_email=holder_email, consent=consent
         )

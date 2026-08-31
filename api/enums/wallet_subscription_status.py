@@ -17,3 +17,9 @@ class WalletSubscriptionStatus(str, Enum):
 ACCESS_GRANTED_STATUSES: frozenset[str] = frozenset(
     {WalletSubscriptionStatus.TRIALING.value, WalletSubscriptionStatus.ACTIVE.value}
 )
+
+# Statuses that cut access (a subscription that lapsed or ended). A program with no
+# subscription yet, or still setting one up, keeps a grace access until it lapses.
+ACCESS_CUT_STATUSES: frozenset[str] = frozenset(
+    {WalletSubscriptionStatus.PAST_DUE.value, WalletSubscriptionStatus.CANCELED.value}
+)

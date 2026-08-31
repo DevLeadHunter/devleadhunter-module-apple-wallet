@@ -21,6 +21,7 @@ from models.loyalty_program import LoyaltyProgram
 from models.loyalty_scan_event import LoyaltyScanEvent
 from services.wallet_automation_service import wallet_automation_service
 from services.wallet_push_service import wallet_push_service
+from services.wallet_subscription_service import wallet_subscription_service
 
 logger = logging.getLogger(__name__)
 
@@ -128,6 +129,7 @@ class WalletScanService:
         if card is None:
             raise WalletScanError(f"No loyalty card {serial_number!r} in program {program_id}.")
         program = self._program_of(db, card)
+        self._ensure_operable(db, program)
         if card.stamps < program.stamps_required:
             raise WalletScanError(f"Loyalty card {serial_number!r} has not reached its reward yet.")
 
@@ -153,6 +155,7 @@ class WalletScanService:
         if card.status == LoyaltyCardStatus.REVOKED.value:
             raise WalletScanError(f"Loyalty card {card.serial_number!r} is revoked.")
         program = self._program_of(db, card)
+        self._ensure_operable(db, program)
 
         now = datetime.now(UTC).replace(tzinfo=None)
         if card.last_stamped_at is not None and now - card.last_stamped_at < timedelta(seconds=cooldown_seconds):
@@ -199,6 +202,14 @@ class WalletScanService:
         if program is None:
             raise WalletScanError(f"Loyalty card {card.serial_number!r} has no program.")
         return program
+
+    @staticmethod
+    def _ensure_operable(db: Session, program: LoyaltyProgram) -> None:
+        """Raise when the program is closed (deleted) or suspended (subscription lapsed)."""
+        if program.deleted_at is not None:
+            raise WalletScanError(f"Loyalty program {program.id} is closed.")
+        if not wallet_subscription_service.has_access(db, program.id):
+            raise WalletScanError(f"Loyalty program {program.id} is suspended (subscription past due).")
 
     @staticmethod
     def _notify(db: Session, user_id: int, card_id: int) -> bool:
