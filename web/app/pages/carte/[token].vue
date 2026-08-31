@@ -79,12 +79,28 @@
               </span>
             </label>
 
-            <button type="submit" class="app-btn-primary h-11 w-full" :disabled="isAdding">
-              <UIcon
-                :name="isAdding ? 'i-lucide-loader-circle' : 'i-lucide-wallet'"
-                :class="['h-4 w-4', isAdding && 'animate-spin']"
+            <button
+              type="submit"
+              class="flex w-full items-center justify-center transition-opacity disabled:opacity-60"
+              :disabled="isAdding"
+              aria-label="Ajouter à Apple Wallet"
+            >
+              <!-- Official Apple badge when the asset is present (drop it at web/public/add-to-apple-wallet.svg),
+                   otherwise a neutral fallback button. -->
+              <img
+                v-if="!badgeMissing && !isAdding"
+                src="/add-to-apple-wallet.svg"
+                alt="Ajouter à Apple Wallet"
+                class="h-[3.25rem] w-auto"
+                @error="badgeMissing = true"
               />
-              Ajouter à Apple Wallet
+              <span v-else class="app-btn-primary h-11 w-full">
+                <UIcon
+                  :name="isAdding ? 'i-lucide-loader-circle' : 'i-lucide-wallet'"
+                  :class="['h-4 w-4', isAdding && 'animate-spin']"
+                />
+                Ajouter à Apple Wallet
+              </span>
             </button>
 
             <p class="text-center text-[11px] text-[var(--app-ink-soft)]">
@@ -121,6 +137,8 @@ const isLoading: Ref<boolean> = ref(true)
 const isAdding: Ref<boolean> = ref(false)
 const added: Ref<boolean> = ref(false)
 const errorMessage: Ref<string> = ref('')
+// Flips to the fallback button when the official Apple badge asset is not present.
+const badgeMissing: Ref<boolean> = ref(false)
 
 const firstName: Ref<string> = ref('')
 const email: Ref<string> = ref('')
