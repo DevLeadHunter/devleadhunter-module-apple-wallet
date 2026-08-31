@@ -17,9 +17,11 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from core.database import Base
+from enums.wallet_subscription_status import WalletSubscriptionStatus
 from models.loyalty_card import LoyaltyCard
 from models.loyalty_program import LoyaltyProgram
 from models.wallet_credentials import WalletCredentials
+from models.wallet_subscription import WalletSubscription
 from services.wallet_credentials_service import wallet_credentials_service
 from services.wallet_enrollment_service import WalletEnrollmentError, wallet_enrollment_service
 
@@ -62,7 +64,12 @@ def session() -> Iterator[Session]:
     engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
     Base.metadata.create_all(
         engine,
-        tables=[LoyaltyProgram.__table__, LoyaltyCard.__table__, WalletCredentials.__table__],
+        tables=[
+            LoyaltyProgram.__table__,
+            LoyaltyCard.__table__,
+            WalletCredentials.__table__,
+            WalletSubscription.__table__,
+        ],
     )
     db = sessionmaker(bind=engine)()
     try:
@@ -169,3 +176,19 @@ def test_get_public_program_resolves_only_live_tokens(session: Session) -> None:
     program.deleted_at = datetime.datetime(2026, 1, 1)
     session.commit()
     assert wallet_enrollment_service.get_public_program(session, "tok-public") is None
+
+
+def test_add_card_is_cut_when_the_subscription_lapsed(session: Session) -> None:
+    """A past-due program refuses new enrollments."""
+    program = _program(session)
+    session.add(
+        WalletSubscription(
+            user_id=program.user_id,
+            program_id=program.id,
+            status=WalletSubscriptionStatus.PAST_DUE.value,
+            price_cents=1900,
+        )
+    )
+    session.commit()
+    with pytest.raises(WalletEnrollmentError):
+        wallet_enrollment_service.add_card(session, public_token="tok-public")

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from datetime import datetime
 
 import pytest
 from sqlalchemy import create_engine
@@ -11,6 +12,7 @@ from sqlalchemy.pool import StaticPool
 
 from core.database import Base
 from enums.loyalty_card_status import LoyaltyCardStatus
+from enums.wallet_subscription_status import WalletSubscriptionStatus
 from models.loyalty_automation import LoyaltyAutomation
 from models.loyalty_card import LoyaltyCard
 from models.loyalty_program import LoyaltyProgram
@@ -18,6 +20,7 @@ from models.loyalty_scan_event import LoyaltyScanEvent
 from models.wallet_automation_job import WalletAutomationJob
 from models.wallet_credentials import WalletCredentials
 from models.wallet_device_registration import WalletDeviceRegistration
+from models.wallet_subscription import WalletSubscription
 from services.wallet_scan_service import WalletScanError, wallet_scan_service
 
 _MODULE_TABLES = [
@@ -28,6 +31,7 @@ _MODULE_TABLES = [
     WalletAutomationJob.__table__,
     WalletCredentials.__table__,
     WalletDeviceRegistration.__table__,
+    WalletSubscription.__table__,
 ]
 
 
@@ -195,3 +199,39 @@ def test_redeem_rejects_a_card_below_the_goal(session: Session) -> None:
     session.commit()
     with pytest.raises(WalletScanError):
         wallet_scan_service.redeem_for_program(session, program.id, "c1")
+
+
+def _subscription(db: Session, program: LoyaltyProgram, *, status: str) -> None:
+    """Persist a subscription for a program with a chosen status."""
+    db.add(WalletSubscription(user_id=program.user_id, program_id=program.id, status=status, price_cents=1900))
+    db.flush()
+
+
+def test_stamp_is_cut_when_the_subscription_lapsed(session: Session) -> None:
+    """A past-due subscription freezes the program's scanning."""
+    program = _program(session, stamps_required=3)
+    card = _card(session, program_id=program.id)
+    _subscription(session, program, status=WalletSubscriptionStatus.PAST_DUE.value)
+    session.commit()
+    with pytest.raises(WalletScanError):
+        wallet_scan_service.stamp_for_program(session, program.id, card.serial_number)
+
+
+def test_stamp_is_cut_when_the_program_is_closed(session: Session) -> None:
+    """A soft-deleted program cannot be stamped."""
+    program = _program(session, stamps_required=3)
+    card = _card(session, program_id=program.id)
+    program.deleted_at = datetime(2026, 1, 1)
+    session.commit()
+    with pytest.raises(WalletScanError):
+        wallet_scan_service.stamp_for_program(session, program.id, card.serial_number)
+
+
+def test_stamp_still_works_during_the_trial(session: Session) -> None:
+    """A trialing subscription keeps access."""
+    program = _program(session, stamps_required=3)
+    card = _card(session, program_id=program.id)
+    _subscription(session, program, status=WalletSubscriptionStatus.TRIALING.value)
+    session.commit()
+    result = wallet_scan_service.stamp_for_program(session, program.id, card.serial_number)
+    assert result.stamped is True
