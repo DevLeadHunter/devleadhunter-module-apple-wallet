@@ -11,10 +11,16 @@
           Suivez les cartes de vos clients et l'état de votre programme, en direct.
         </p>
       </div>
-      <span class="app-badge" :class="subscriptionActive ? 'app-badge--success' : ''">
-        <span class="h-1.5 w-1.5 rounded-full" :style="{ backgroundColor: subscriptionDotColor }" />
-        {{ subscriptionLabel }}
-      </span>
+      <div class="flex flex-wrap items-center gap-2">
+        <NuxtLink to="/merchant/automations" class="app-btn-secondary h-9 text-xs">
+          <UIcon name="i-lucide-megaphone" class="h-4 w-4" />
+          Vos offres
+        </NuxtLink>
+        <span class="app-badge" :class="subscriptionActive ? 'app-badge--success' : ''">
+          <span class="h-1.5 w-1.5 rounded-full" :style="{ backgroundColor: subscriptionDotColor }" />
+          {{ subscriptionLabel }}
+        </span>
+      </div>
     </div>
 
     <div v-if="isLoading" class="space-y-8">

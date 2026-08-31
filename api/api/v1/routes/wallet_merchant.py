@@ -94,7 +94,7 @@ class AutomationResponse(BaseModel):
 
 
 # Maps the API's camelCase automation update fields onto the model's snake_case columns.
-_AUTOMATION_FIELD_MAP = {
+AUTOMATION_FIELD_MAP = {
     "name": "name",
     "triggerType": "trigger_type",
     "delayMinutes": "delay_minutes",
@@ -104,7 +104,7 @@ _AUTOMATION_FIELD_MAP = {
 }
 
 
-def _automation_response(automation: LoyaltyAutomation) -> AutomationResponse:
+def automation_to_response(automation: LoyaltyAutomation) -> AutomationResponse:
     """Serialize an automation to its API shape."""
     return AutomationResponse(
         id=automation.id,
@@ -207,7 +207,7 @@ async def list_automations(
     """List a program's automations."""
     _require_program(db, current_user.id, program_id)
     return [
-        _automation_response(automation)
+        automation_to_response(automation)
         for automation in wallet_automation_service.list_for_program(db, current_user.id, program_id)
     ]
 
@@ -234,7 +234,7 @@ async def create_automation(
         )
     except WalletAutomationError as error:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
-    return _automation_response(automation)
+    return automation_to_response(automation)
 
 
 @router.patch("/automations/{automation_id}", response_model=AutomationResponse)
@@ -249,13 +249,13 @@ async def update_automation(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Automatisation introuvable")
     provided = body.model_dump(exclude_unset=True)
     changes: dict[str, object] = {
-        _AUTOMATION_FIELD_MAP[key]: value for key, value in provided.items() if key in _AUTOMATION_FIELD_MAP
+        AUTOMATION_FIELD_MAP[key]: value for key, value in provided.items() if key in AUTOMATION_FIELD_MAP
     }
     try:
         automation = wallet_automation_service.update(db, current_user.id, automation_id, changes)
     except WalletAutomationError as error:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
-    return _automation_response(automation)
+    return automation_to_response(automation)
 
 
 @router.delete("/automations/{automation_id}", status_code=status.HTTP_204_NO_CONTENT)
