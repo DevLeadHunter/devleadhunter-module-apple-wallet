@@ -41,17 +41,19 @@ le QR) : `web/app/pages/dashboard/wallet/index.vue` + `[id].vue`.
 - La marque de la surface commerçant est **personnalisée au commerce** (jamais « devleadhunter » côté
   client/commerçant) ; repère neutre « Fidélité · Apple Wallet » seulement avant connexion.
 
-## Asset à déposer — badge officiel « Add to Apple Wallet »
+## Badge officiel « Ajouter à Apple Wallet » — en place ✅
 
-La page client (`web/app/pages/carte/[token].vue`) affiche déjà le **badge officiel Apple**
-si le fichier est présent, sinon un bouton de repli neutre. Pour l'activer :
+La page client (`web/app/pages/carte/[token].vue`) affiche le **badge officiel Apple**.
+Le fichier est déjà déposé : **`web/public/add-to-apple-wallet.svg`** (servi à `/add-to-apple-wallet.svg`).
 
-1. Télécharger le badge FR depuis les ressources Apple (« Add to Apple Wallet Guidelines »,
-   version française « Ajouter à Apple Wallet »).
-2. Le déposer à **`web/public/add-to-apple-wallet.svg`** (exactement ce nom).
+Provenance : extrait de la **pack officiel Apple** (« Add to Apple Wallet Guidelines », 45 locales,
+SVG/EPS), locale **FR/RGB** (`FR_Add_to_Apple_Wallet_RGB`). C'est l'artwork Apple d'origine —
+**ne jamais le recréer soi-même**, Apple impose l'usage de son asset officiel.
 
-Le badge apparaît alors automatiquement, sans autre changement de code. Ne pas recréer le badge
-soi-même : Apple impose l'usage de son asset officiel.
+Pour le remplacer (nouvelle version Apple) : re-télécharger le pack depuis
+`developer.apple.com/wallet/add-to-apple-wallet-guidelines/`, prendre le SVG du dossier `FR/RGB/`,
+et écraser le fichier en gardant **exactement** ce nom. La page a un repli neutre (`@error`) si le
+fichier venait à manquer.
 
 ## Contexte
 
