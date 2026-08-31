@@ -10,9 +10,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import zipfile
 from io import BytesIO
 
+import httpx
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.serialization import pkcs7
 from cryptography.x509 import load_pem_x509_certificate
@@ -24,10 +26,16 @@ from models.loyalty_card import LoyaltyCard
 from models.loyalty_program import LoyaltyProgram
 from services.wallet_credentials_service import WalletSigningMaterial, wallet_credentials_service
 
+logger = logging.getLogger(__name__)
+
 _DEFAULT_BACKGROUND = (23, 23, 23)
 _DEFAULT_FOREGROUND = (255, 255, 255)
 _DEFAULT_LABEL = (200, 200, 200)
 _ICON_SIZES = {"icon.png": 29, "icon@2x.png": 58, "icon@3x.png": 87}
+# Apple logo slots (top of the pass): heights in pt × scale, widths capped so wide logos don't distort.
+_LOGO_HEIGHTS = {"logo.png": 50, "logo@2x.png": 100, "logo@3x.png": 150}
+_LOGO_MAX_WIDTHS = {"logo.png": 160, "logo@2x.png": 320, "logo@3x.png": 480}
+_LOGO_FETCH_TIMEOUT_SECONDS = 5.0
 
 
 class WalletPassError(RuntimeError):
@@ -84,7 +92,8 @@ class WalletPassService:
         """
         pass_json = self.build_pass_json(program, card, signing_material, web_service_url=web_service_url)
         pass_bytes = self._to_bytes(pass_json)
-        bundle = {"pass.json": pass_bytes, **(images if images is not None else self.render_default_icons(program))}
+        default_images = {**self.render_default_icons(program), **self._render_logo_images(program.logo_url)}
+        bundle = {"pass.json": pass_bytes, **(images if images is not None else default_images)}
         manifest = self._build_manifest(bundle)
         signature = self._sign_manifest(manifest, signing_material)
         return self._zip({**bundle, "manifest.json": manifest, "signature": signature})
@@ -152,6 +161,40 @@ class WalletPassService:
         background = self._parse_color(program.background_color, _DEFAULT_BACKGROUND)
         foreground = self._parse_color(program.foreground_color, _DEFAULT_FOREGROUND)
         return {filename: self._render_icon(size, background, foreground) for filename, size in _ICON_SIZES.items()}
+
+    def _render_logo_images(self, logo_url: str | None) -> dict[str, bytes]:
+        """Fetch the merchant logo and render the Wallet logo set — best-effort.
+
+        Args:
+            logo_url: The program's logo URL, if any.
+
+        Returns:
+            ``logo.png`` / ``logo@2x.png`` / ``logo@3x.png`` bytes, or an empty dict when
+            there is no logo or it cannot be fetched/decoded (the pass still ships its icons).
+        """
+        if not logo_url:
+            return {}
+        try:
+            response = httpx.get(logo_url, timeout=_LOGO_FETCH_TIMEOUT_SECONDS, follow_redirects=True)
+            response.raise_for_status()
+            return self._logo_images_from_bytes(response.content)
+        except Exception as error:
+            logger.info("Wallet logo skipped for %r: %s", logo_url, error)
+            return {}
+
+    @staticmethod
+    def _logo_images_from_bytes(raw: bytes) -> dict[str, bytes]:
+        """Render logo.png/@2x/@3x from a source image, preserving aspect ratio and transparency."""
+        source = Image.open(BytesIO(raw)).convert("RGBA")
+        images: dict[str, bytes] = {}
+        for filename, height in _LOGO_HEIGHTS.items():
+            ratio = height / source.height
+            width = min(round(source.width * ratio), _LOGO_MAX_WIDTHS[filename])
+            resized = source.resize((max(width, 1), height), Image.Resampling.LANCZOS)
+            buffer = BytesIO()
+            resized.save(buffer, format="PNG")
+            images[filename] = buffer.getvalue()
+        return images
 
     @staticmethod
     def _render_icon(size: int, background: tuple[int, int, int], foreground: tuple[int, int, int]) -> bytes:

@@ -14,6 +14,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.serialization import pkcs7
 from cryptography.x509.oid import NameOID
+from PIL import Image
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -167,3 +168,23 @@ def test_generate_for_card_raises_without_card(signing_material: WalletSigningMa
             wallet_pass_service.generate_for_card(db, 1, 999)
     finally:
         db.close()
+
+
+def test_logo_images_from_bytes_renders_the_three_slots() -> None:
+    """A source image yields logo.png/@2x/@3x, each a valid PNG at the expected height."""
+    source = Image.new("RGBA", (200, 200), (10, 20, 30, 255))
+    buffer = BytesIO()
+    source.save(buffer, format="PNG")
+
+    images = wallet_pass_service._logo_images_from_bytes(buffer.getvalue())
+
+    assert set(images) == {"logo.png", "logo@2x.png", "logo@3x.png"}
+    for filename, height in {"logo.png": 50, "logo@2x.png": 100, "logo@3x.png": 150}.items():
+        rendered = Image.open(BytesIO(images[filename]))
+        assert rendered.format == "PNG"
+        assert rendered.height == height
+
+
+def test_render_logo_images_is_empty_without_a_url() -> None:
+    """No logo URL → no logo files (the pass still ships its icons)."""
+    assert wallet_pass_service._render_logo_images(None) == {}
