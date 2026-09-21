@@ -103,6 +103,20 @@ def test_pass_json_carries_store_card_and_identifiers(signing_material: WalletSi
     assert "%@" in primary["changeMessage"]
 
 
+def test_pass_json_ships_ios27_poster_alongside_store_card_fallback(signing_material: WalletSigningMaterial) -> None:
+    """The iOS 27 ``posterGeneric`` look ships next to the ``storeCard`` fallback (backward compatible)."""
+    pass_json = wallet_pass_service.build_pass_json(
+        _program(), _card(), signing_material, web_service_url=_WEB_SERVICE_URL
+    )
+    poster = pass_json["posterGeneric"]
+    assert poster["primaryFields"][0]["value"] == "3 / 10"
+    assert "%@" in poster["primaryFields"][0]["changeMessage"]
+    assert [field["value"] for field in poster["footerFields"]] == ["1 kebab offert"]
+    assert poster["backFields"][0]["value"] == "Kebab Istanbul"
+    # The legacy store card stays for devices before iOS 27.
+    assert pass_json["storeCard"]["primaryFields"][0]["value"] == "3 / 10"
+
+
 def test_pkpass_is_a_valid_signed_bundle(signing_material: WalletSigningMaterial) -> None:
     """The archive holds pass.json, an icon, a matching manifest, and a chained signature."""
     pkpass = wallet_pass_service.build_pkpass(_program(), _card(), signing_material, web_service_url=_WEB_SERVICE_URL)
