@@ -106,7 +106,12 @@ class WalletPassService:
         *,
         web_service_url: str,
     ) -> dict[str, object]:
-        """Build the ``pass.json`` payload for a store card.
+        """Build the ``pass.json`` payload with the iOS 27 poster look and a store-card fallback.
+
+        The pass carries two style dictionaries: ``posterGeneric`` (the full-bleed layout
+        introduced in iOS/watchOS 27) and ``storeCard`` (the legacy loyalty style). Wallet
+        prioritizes ``posterGeneric`` on iOS 27+ and falls back to ``storeCard`` on older
+        systems, so a single pass renders up to date everywhere without a second build.
 
         Args:
             program: The card's loyalty program.
@@ -124,13 +129,30 @@ class WalletPassService:
         }
         if program.default_change_message:
             stamps_field["changeMessage"] = program.default_change_message
+        reward_field: dict[str, object] | None = (
+            {"key": "reward", "label": "Récompense", "value": program.reward_label} if program.reward_label else None
+        )
+        offer_field: dict[str, object] | None = (
+            {"key": "offer", "label": "Offre", "value": card.current_offer, "changeMessage": "%@"}
+            if card.current_offer
+            else None
+        )
+        # reward + current offer (at most two), reused as-is by the store card below.
+        footer_fields: list[dict[str, object]] = [field for field in (reward_field, offer_field) if field is not None]
+
         store_card: dict[str, object] = {"primaryFields": [stamps_field]}
-        if program.reward_label:
-            store_card["secondaryFields"] = [{"key": "reward", "label": "Récompense", "value": program.reward_label}]
-        if card.current_offer:
-            store_card["auxiliaryFields"] = [
-                {"key": "offer", "label": "Offre", "value": card.current_offer, "changeMessage": "%@"}
-            ]
+        if reward_field is not None:
+            store_card["secondaryFields"] = [reward_field]
+        if offer_field is not None:
+            store_card["auxiliaryFields"] = [offer_field]
+
+        poster_generic: dict[str, object] = {
+            "primaryFields": [stamps_field],
+            "backFields": [{"key": "issuer", "label": "Émis par", "value": program.organization_name}],
+        }
+        if footer_fields:
+            poster_generic["footerFields"] = footer_fields
+
         return {
             "formatVersion": 1,
             "passTypeIdentifier": signing_material.pass_type_identifier,
@@ -146,6 +168,7 @@ class WalletPassService:
             ],
             "webServiceURL": web_service_url,
             "authenticationToken": card.authentication_token,
+            "posterGeneric": poster_generic,
             "storeCard": store_card,
         }
 
