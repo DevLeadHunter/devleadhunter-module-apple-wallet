@@ -77,11 +77,11 @@ WALLET_EMAIL_TEMPLATE_LIBRARY: list[dict[str, object]] = [
             "<p>Je fais des outils web pour les commerçants, et j'ai préparé la carte de fidélité de {entreprise}. "
             "En bref :</p>"
             "<ul>"
-            "<li>dans Apple Wallet, sur l'iPhone de vos clients ;</li>"
-            "<li>ajoutée en un scan, avec le QR code du comptoir, sans appli ;</li>"
-            "<li>un tampon à chaque passage, depuis votre espace ;</li>"
-            "<li>la récompense de votre choix au dernier tampon ;</li>"
-            "<li>vos offres sur leur écran verrouillé, envoyées à tous ou après un passage.</li>"
+            "<li>Dans Apple Wallet, sur l'iPhone de vos clients</li>"
+            "<li>Ajoutée en un scan, avec le QR code du comptoir, sans appli</li>"
+            "<li>Un tampon à chaque passage, depuis votre espace</li>"
+            "<li>La récompense de votre choix au dernier tampon</li>"
+            "<li>Vos offres sur leur écran verrouillé, envoyées à tous ou après un passage</li>"
             "</ul>"
             "<p>Elle est déjà prête : {lien_carte}</p>" + _PRICE_LINE + _EXPIRY_LINE + _SINGLE_ASK_WITH_EXIT
         ),

@@ -57,7 +57,7 @@ Ce que vérifient les tests (67 cas) : forme des données, préfixes, catégorie
 
 Reprises de main : `{salutation}`, `{entreprise}`, `{date_expiration}` (format « 12 novembre »), et en SMS `{telephone}` et `{signature}`.
 
-Nouvelles, propres au module, **à brancher** (aucun code ne les résout) :
+Nouvelles, propres au module :
 
 | Variable | Contenu | Rendu |
 | --- | --- | --- |
@@ -116,11 +116,11 @@ Bonjour M. Martin,
 
 Je fais des outils web pour les commerçants, et j'ai préparé la carte de fidélité de Boulangerie Martin. En bref :
 
-• dans Apple Wallet, sur l'iPhone de vos clients ;
-• ajoutée en un scan, avec le QR code du comptoir, sans appli ;
-• un tampon à chaque passage, depuis votre espace ;
-• la récompense de votre choix au dernier tampon ;
-• vos offres sur leur écran verrouillé, envoyées à tous ou après un passage.
+- Dans Apple Wallet, sur l'iPhone de vos clients
+- Ajoutée en un scan, avec le QR code du comptoir, sans appli
+- Un tampon à chaque passage, depuis votre espace
+- La récompense de votre choix au dernier tampon
+- Vos offres sur leur écran verrouillé, envoyées à tous ou après un passage
 
 Elle est déjà prête : demo.dibodev.fr/c/boulangerie-martin
 
@@ -200,11 +200,3 @@ Bonjour M. Martin, la carte fidélité iPhone envoyée par email est toujours en
 ```
 
 Les SMS portent en plus la date de retrait, une trentaine de caractères que n'ont pas ceux de main. Pour tenir en 2 segments dans le pire cas, ils disent « carte fidélité » au lieu de « carte de fidélité » et ne gardent qu'une des deux conditions (« 1er mois offert » ou « sans engagement ») ; le SMS « sans appli » donne le prix seul. Au-delà de 2 segments, le service d'envoi de main remplace la salutation par un simple « Bonjour », puis refuse l'envoi si le SMS reste trop long.
-
-## 6. Ce qui reste à brancher
-
-1. **La démo de carte du prospect.** Un programme créé pour le prospect (`prospect_id` rempli, nom, logo et couleurs repris de sa fiche) et une page qui lui est destinée : sa carte, l'ajout à son iPhone, ce que le commerçant obtient, le prix et la date. Le lien reste en marque blanche : sans `NUXT_PUBLIC_WALLET_ENROLL_BASE`, `useWalletEnrollLink` construit le lien sur le domaine de l'application (`/carte/{token}`), donc sur devleadhunter.fr. L'opérateur doit avoir ses certificats Apple de signature (`wallet_credentials_service`), sans quoi l'ajout de la carte échoue, démo comprise.
-2. **`{date_expiration}` pour une carte.** Une date de fin de démo sur le programme et une tâche qui ferme le programme à cette date (la fermeture par `deleted_at` coupe déjà la page, l'ajout et les tampons). Côté SMS, main n'a pas de variable `{date_expiration}` : elle s'ajoute aux variables SMS pour ces modèles.
-3. **`{lien_carte}` et `{prix_carte}`** dans `EmailVariables` et `SmsVariables` (main) : lien suivi en email (`?src=email`), forme courte sans https en SMS ; prix lu dans `WALLET_SUBSCRIPTION_PRICE_CENTS` et formaté par pays (`CountryProfiles.format_price`).
-4. **Les listes de main.** Les emails rejoignent la bibliothèque (seeder et migration de mise à jour, comme `reseed_frank_email_template_library`), les SMS `SMS_TEMPLATE_LIBRARY` (`SmsTemplate(**dict)`, catégorie convertie en `SmsTemplateCategory`), visibles seulement pour un opérateur qui a le module actif. Les deux variables rejoignent les catalogues du composeur (email et `web/app/utils/smsVariables.ts`).
-5. **Les gardes d'envoi.** Un modèle carte ne part jamais vers un prospect sans démo de carte (comme la garde de `{lien_demo}`), et la relance SMS part avant la date de retrait, sinon « Je la retire le … » serait déjà passé.
