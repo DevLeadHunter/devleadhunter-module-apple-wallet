@@ -7,100 +7,21 @@ The core closes every route (404) while the module is switched off.
 
 from __future__ import annotations
 
-from datetime import datetime
-
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from core.database import get_db
 from models.user import User
 from services.auth_service import get_current_active_user
 
-from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
+from devleadhunter_apple_wallet.schemas.wallet_program import (
+    WalletProgramCreateBody,
+    WalletProgramResponse,
+    WalletProgramUpdateBody,
+)
 from devleadhunter_apple_wallet.services.wallet_program_service import WalletProgramError, wallet_program_service
 
 router = APIRouter(prefix="/wallet/programs", tags=["wallet-programs"])
-
-# Maps the API's camelCase update fields onto the model's snake_case columns.
-_UPDATE_FIELD_MAP = {
-    "organizationName": "organization_name",
-    "stampsRequired": "stamps_required",
-    "rewardLabel": "reward_label",
-    "description": "description",
-    "defaultChangeMessage": "default_change_message",
-    "logoUrl": "logo_url",
-    "backgroundColor": "background_color",
-    "foregroundColor": "foreground_color",
-    "labelColor": "label_color",
-    "status": "status",
-}
-
-
-class WalletProgramCreateBody(BaseModel):
-    """Body to create a loyalty program."""
-
-    organizationName: str
-    stampsRequired: int = 10
-    rewardLabel: str | None = None
-    description: str | None = None
-    defaultChangeMessage: str | None = None
-    logoUrl: str | None = None
-    backgroundColor: str | None = None
-    foregroundColor: str | None = None
-    labelColor: str | None = None
-
-
-class WalletProgramUpdateBody(BaseModel):
-    """Body to edit a loyalty program (only the sent fields change)."""
-
-    organizationName: str | None = None
-    stampsRequired: int | None = None
-    rewardLabel: str | None = None
-    description: str | None = None
-    defaultChangeMessage: str | None = None
-    logoUrl: str | None = None
-    backgroundColor: str | None = None
-    foregroundColor: str | None = None
-    labelColor: str | None = None
-    status: str | None = None
-
-
-class WalletProgramResponse(BaseModel):
-    """A loyalty program's full configuration."""
-
-    id: int
-    organizationName: str
-    description: str | None
-    stampsRequired: int
-    rewardLabel: str | None
-    defaultChangeMessage: str | None
-    logoUrl: str | None
-    backgroundColor: str | None
-    foregroundColor: str | None
-    labelColor: str | None
-    status: str
-    publicToken: str | None
-    createdAt: datetime | None
-
-
-def _to_response(program: LoyaltyProgram) -> WalletProgramResponse:
-    """Serialize a program to its API shape."""
-    return WalletProgramResponse(
-        id=program.id,
-        organizationName=program.organization_name,
-        description=program.description,
-        stampsRequired=program.stamps_required,
-        rewardLabel=program.reward_label,
-        defaultChangeMessage=program.default_change_message,
-        logoUrl=program.logo_url,
-        backgroundColor=program.background_color,
-        foregroundColor=program.foreground_color,
-        labelColor=program.label_color,
-        status=program.status,
-        publicToken=program.public_token,
-        createdAt=program.created_at,
-    )
 
 
 @router.post("", response_model=WalletProgramResponse)
@@ -123,7 +44,7 @@ async def create_program(
         foreground_color=body.foregroundColor,
         label_color=body.labelColor,
     )
-    return _to_response(program)
+    return WalletProgramResponse.from_program(program)
 
 
 @router.get("", response_model=list[WalletProgramResponse])
@@ -132,7 +53,10 @@ async def list_programs(
     db: Session = Depends(get_db),
 ) -> list[WalletProgramResponse]:
     """List the operator's loyalty programs, most recent first."""
-    return [_to_response(program) for program in wallet_program_service.list_for_user(db, current_user.id)]
+    return [
+        WalletProgramResponse.from_program(program)
+        for program in wallet_program_service.list_for_user(db, current_user.id)
+    ]
 
 
 @router.get("/{program_id}", response_model=WalletProgramResponse)
@@ -145,7 +69,7 @@ async def get_program(
     program = wallet_program_service.get_for_user(db, current_user.id, program_id)
     if program is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Programme introuvable")
-    return _to_response(program)
+    return WalletProgramResponse.from_program(program)
 
 
 @router.patch("/{program_id}", response_model=WalletProgramResponse)
@@ -158,18 +82,8 @@ async def update_program(
     """Apply the operator's edits to one of their programs."""
     if wallet_program_service.get_for_user(db, current_user.id, program_id) is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Programme introuvable")
-
-    provided = body.model_dump(exclude_unset=True)
-    changes: dict[str, object] = {
-        _UPDATE_FIELD_MAP[key]: value for key, value in provided.items() if key in _UPDATE_FIELD_MAP
-    }
-    # Never clear the required columns by sending an explicit null.
-    for required in ("organization_name", "stamps_required"):
-        if changes.get(required) is None:
-            changes.pop(required, None)
-
     try:
-        program = wallet_program_service.update(db, current_user.id, program_id, changes)
+        program = wallet_program_service.update(db, current_user.id, program_id, body.column_changes())
     except WalletProgramError as error:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
-    return _to_response(program)
+    return WalletProgramResponse.from_program(program)

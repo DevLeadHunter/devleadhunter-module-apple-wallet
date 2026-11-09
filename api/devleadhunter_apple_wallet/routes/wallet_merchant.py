@@ -8,7 +8,6 @@ The core closes them (404) while the module is switched off.
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
-from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from core.config import settings
@@ -16,13 +15,27 @@ from core.database import get_db
 from models.user import User
 from services.auth_service import get_current_active_user
 
-from devleadhunter_apple_wallet.models.loyalty_automation import LoyaltyAutomation
 from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
+from devleadhunter_apple_wallet.schemas.wallet_automation import (
+    AutomationBody,
+    AutomationResponse,
+    AutomationUpdateBody,
+    BroadcastResponse,
+)
+from devleadhunter_apple_wallet.schemas.wallet_merchant import (
+    MerchantCredentialsResponse,
+    ScanBody,
+    ScanResponse,
+    SubscriptionCheckoutBody,
+    SubscriptionCheckoutResponse,
+    SubscriptionStatusResponse,
+)
 from devleadhunter_apple_wallet.services.merchant_auth_service import merchant_auth_service
 from devleadhunter_apple_wallet.services.wallet_automation_service import (
     WalletAutomationError,
     wallet_automation_service,
 )
+from devleadhunter_apple_wallet.services.wallet_program_service import wallet_program_service
 from devleadhunter_apple_wallet.services.wallet_scan_service import WalletScanError, wallet_scan_service
 from devleadhunter_apple_wallet.services.wallet_subscription_service import (
     WalletSubscriptionError,
@@ -32,130 +45,12 @@ from devleadhunter_apple_wallet.services.wallet_subscription_service import (
 router = APIRouter(prefix="/wallet/merchant", tags=["wallet-merchant"])
 
 
-class ScanBody(BaseModel):
-    """Body of a merchant scan request."""
-
-    serialNumber: str
-
-
-class ScanResponse(BaseModel):
-    """Card state returned after a scan."""
-
-    serialNumber: str
-    stamps: int
-    stampsRequired: int
-    stamped: bool
-    throttled: bool
-    rewardReady: bool
-    pushed: bool
-
-
-class BroadcastResponse(BaseModel):
-    """How many cards a broadcast was scheduled for."""
-
-    scheduled: int
-
-
-class AutomationBody(BaseModel):
-    """Body to create an automation."""
-
-    name: str | None = None
-    triggerType: str
-    delayMinutes: int = Field(default=0, ge=0)
-    fieldValue: str | None = None
-    changeMessage: str | None = None
-
-
-class AutomationUpdateBody(BaseModel):
-    """Body to edit an automation (only the sent fields change)."""
-
-    name: str | None = None
-    triggerType: str | None = None
-    delayMinutes: int | None = Field(default=None, ge=0)
-    fieldValue: str | None = None
-    changeMessage: str | None = None
-    isActive: bool | None = None
-
-
-class AutomationResponse(BaseModel):
-    """An automation's configuration."""
-
-    id: int
-    name: str | None
-    triggerType: str
-    delayMinutes: int
-    fieldValue: str | None
-    changeMessage: str | None
-    isActive: bool
-
-
-# Maps the API's camelCase automation update fields onto the model's snake_case columns.
-AUTOMATION_FIELD_MAP = {
-    "name": "name",
-    "triggerType": "trigger_type",
-    "delayMinutes": "delay_minutes",
-    "fieldValue": "field_value",
-    "changeMessage": "change_message",
-    "isActive": "is_active",
-}
-
-
-def automation_to_response(automation: LoyaltyAutomation) -> AutomationResponse:
-    """Serialize an automation to its API shape."""
-    return AutomationResponse(
-        id=automation.id,
-        name=automation.name,
-        triggerType=automation.trigger_type,
-        delayMinutes=automation.delay_minutes,
-        fieldValue=automation.field_value,
-        changeMessage=automation.change_message,
-        isActive=automation.is_active,
-    )
-
-
 def _require_program(db: Session, user_id: int, program_id: int) -> LoyaltyProgram:
-    """Return the operator's program or raise 404."""
-    program = (
-        db.query(LoyaltyProgram)
-        .filter(
-            LoyaltyProgram.id == program_id,
-            LoyaltyProgram.user_id == user_id,
-            LoyaltyProgram.deleted_at.is_(None),
-        )
-        .first()
-    )
+    """Return the operator's live program or raise 404."""
+    program = wallet_program_service.get_for_user(db, user_id, program_id)
     if program is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Programme introuvable")
     return program
-
-
-class SubscriptionCheckoutBody(BaseModel):
-    """Body to start a merchant subscription checkout."""
-
-    programId: int
-    successUrl: str | None = None
-    cancelUrl: str | None = None
-
-
-class SubscriptionCheckoutResponse(BaseModel):
-    """The hosted Stripe checkout URL to open."""
-
-    url: str
-
-
-class SubscriptionStatusResponse(BaseModel):
-    """A program's subscription state."""
-
-    programId: int
-    status: str
-    active: bool
-
-
-class MerchantCredentialsResponse(BaseModel):
-    """Freshly provisioned merchant login, shown once for handover."""
-
-    email: str
-    password: str
 
 
 @router.post("/scan", response_model=ScanResponse)
@@ -203,7 +98,7 @@ async def list_automations(
     """List a program's automations."""
     _require_program(db, current_user.id, program_id)
     return [
-        automation_to_response(automation)
+        AutomationResponse.from_automation(automation)
         for automation in wallet_automation_service.list_for_program(db, current_user.id, program_id)
     ]
 
@@ -230,7 +125,7 @@ async def create_automation(
         )
     except WalletAutomationError as error:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
-    return automation_to_response(automation)
+    return AutomationResponse.from_automation(automation)
 
 
 @router.patch("/automations/{automation_id}", response_model=AutomationResponse)
@@ -243,15 +138,11 @@ async def update_automation(
     """Apply the operator's edits to one of their automations."""
     if wallet_automation_service.get_for_user(db, current_user.id, automation_id) is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Automatisation introuvable")
-    provided = body.model_dump(exclude_unset=True)
-    changes: dict[str, object] = {
-        AUTOMATION_FIELD_MAP[key]: value for key, value in provided.items() if key in AUTOMATION_FIELD_MAP
-    }
     try:
-        automation = wallet_automation_service.update(db, current_user.id, automation_id, changes)
+        automation = wallet_automation_service.update(db, current_user.id, automation_id, body.column_changes())
     except WalletAutomationError as error:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
-    return automation_to_response(automation)
+    return AutomationResponse.from_automation(automation)
 
 
 @router.delete("/automations/{automation_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -319,16 +210,6 @@ async def provision_merchant_login(
     db: Session = Depends(get_db),
 ) -> MerchantCredentialsResponse:
     """Create (or reset) the merchant's login for a program and return it once for handover."""
-    program = (
-        db.query(LoyaltyProgram)
-        .filter(
-            LoyaltyProgram.id == program_id,
-            LoyaltyProgram.user_id == current_user.id,
-            LoyaltyProgram.deleted_at.is_(None),
-        )
-        .first()
-    )
-    if program is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Programme introuvable")
+    program = _require_program(db, current_user.id, program_id)
     account, password = merchant_auth_service.provision(db, program_id, organization_name=program.organization_name)
     return MerchantCredentialsResponse(email=account.email, password=password)
