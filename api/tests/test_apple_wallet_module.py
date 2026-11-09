@@ -103,7 +103,7 @@ class TestRoutes:
         self, client: TestClient, db: Session, apple_wallet_module_switched_on: AppleWalletModule
     ) -> None:
         """The core's switch replaced the old per-user gate: a logged-in operator reaches his programs at once."""
-        operator = User(name="Léo", email="leo@example.com", hashed_password="x")
+        operator = User(name="Marc Dupont", email="marc@example.com", hashed_password="x")
         db.add(operator)
         db.commit()
         token = AuthService.create_access_token({"sub": operator.email})

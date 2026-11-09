@@ -119,7 +119,7 @@ class TestSchema:
 class TestEmailTemplates:
     @staticmethod
     def _admin(db: Session) -> User:
-        admin = User(name="Léo", email=settings.admin_email, hashed_password="x")
+        admin = User(name="Admin", email=settings.admin_email, hashed_password="x")
         db.add(admin)
         db.commit()
         return admin
@@ -142,7 +142,7 @@ class TestEmailTemplates:
 
     def test_the_card_templates_are_inserted_once_then_rewritten(self, engine: Engine, db: Session) -> None:
         admin = self._admin(db)
-        db.add(EmailSignature(user_id=admin.id, name="Léo", content_html="<p>Léo</p>", is_default=True))
+        db.add(EmailSignature(user_id=admin.id, name="Admin", content_html="<p>Admin</p>", is_default=True))
         db.commit()
 
         add_loyalty_card_email_templates.run_migration(engine)
