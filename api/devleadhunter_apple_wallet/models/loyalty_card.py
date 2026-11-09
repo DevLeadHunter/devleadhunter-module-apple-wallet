@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.sql import func
 
-from core.database import Base
+from core.clock import naive_utc_now
+from core.database import UTF8MB4_TABLE_OPTIONS, Base
 
 from devleadhunter_apple_wallet.enums.loyalty_card_status import LoyaltyCardStatus
 
@@ -42,6 +42,7 @@ class LoyaltyCard(Base):
     """
 
     __tablename__ = "loyalty_cards"
+    __table_args__ = (UTF8MB4_TABLE_OPTIONS,)
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True, autoincrement=True)
     program_id: Mapped[int] = mapped_column(
@@ -69,8 +70,8 @@ class LoyaltyCard(Base):
     last_stamped_at: Mapped[datetime | None] = mapped_column(nullable=True)
     added_to_wallet_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
-    updated_at: Mapped[datetime | None] = mapped_column(onupdate=func.now(), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(default=naive_utc_now, nullable=False)
+    updated_at: Mapped[datetime | None] = mapped_column(onupdate=naive_utc_now, nullable=True)
 
     program: Mapped[LoyaltyProgram] = relationship("LoyaltyProgram", back_populates="cards")
     device_registrations: Mapped[list[WalletDeviceRegistration]] = relationship(

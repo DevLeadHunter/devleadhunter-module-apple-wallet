@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.sql import func
 
-from core.database import Base
+from core.clock import naive_utc_now
+from core.database import UTF8MB4_TABLE_OPTIONS, Base
 
 if TYPE_CHECKING:
     from devleadhunter_apple_wallet.models.loyalty_card import LoyaltyCard
@@ -30,6 +30,7 @@ class LoyaltyScanEvent(Base):
     """
 
     __tablename__ = "loyalty_scan_events"
+    __table_args__ = (UTF8MB4_TABLE_OPTIONS,)
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True, autoincrement=True)
     card_id: Mapped[int] = mapped_column(ForeignKey("loyalty_cards.id", ondelete="CASCADE"), nullable=False, index=True)
@@ -42,7 +43,7 @@ class LoyaltyScanEvent(Base):
         String(20), nullable=False, default="merchant_scan", server_default="merchant_scan"
     )
 
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(default=naive_utc_now, nullable=False)
 
     card: Mapped[LoyaltyCard] = relationship("LoyaltyCard", back_populates="scan_events")
 

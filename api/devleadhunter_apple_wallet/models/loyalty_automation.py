@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.sql import func
 
-from core.database import Base
+from core.clock import naive_utc_now
+from core.database import UTF8MB4_TABLE_OPTIONS, Base
 
 if TYPE_CHECKING:
     from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
@@ -36,6 +36,7 @@ class LoyaltyAutomation(Base):
     """
 
     __tablename__ = "loyalty_automations"
+    __table_args__ = (UTF8MB4_TABLE_OPTIONS,)
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True, autoincrement=True)
     program_id: Mapped[int] = mapped_column(
@@ -53,8 +54,8 @@ class LoyaltyAutomation(Base):
 
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="1")
 
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
-    updated_at: Mapped[datetime | None] = mapped_column(onupdate=func.now(), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(default=naive_utc_now, nullable=False)
+    updated_at: Mapped[datetime | None] = mapped_column(onupdate=naive_utc_now, nullable=True)
 
     program: Mapped[LoyaltyProgram] = relationship("LoyaltyProgram", back_populates="automations")
 

@@ -6,9 +6,9 @@ from datetime import datetime
 
 from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql import func
 
-from core.database import Base
+from core.clock import naive_utc_now
+from core.database import UTF8MB4_TABLE_OPTIONS, Base
 
 from devleadhunter_apple_wallet.enums.wallet_automation_job_status import WalletAutomationJobStatus
 
@@ -30,6 +30,7 @@ class WalletAutomationJob(Base):
     """
 
     __tablename__ = "wallet_automation_jobs"
+    __table_args__ = (UTF8MB4_TABLE_OPTIONS,)
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True, autoincrement=True)
     automation_id: Mapped[int] = mapped_column(
@@ -48,7 +49,7 @@ class WalletAutomationJob(Base):
     )
     error: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(default=naive_utc_now, nullable=False)
     sent_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
     def __repr__(self) -> str:

@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.sql import func
 
-from core.database import Base
+from core.clock import naive_utc_now
+from core.database import UTF8MB4_TABLE_OPTIONS, Base
 
 if TYPE_CHECKING:
     from devleadhunter_apple_wallet.models.loyalty_card import LoyaltyCard
@@ -34,6 +34,7 @@ class WalletDeviceRegistration(Base):
     __tablename__ = "wallet_device_registrations"
     __table_args__ = (
         UniqueConstraint("device_library_identifier", "serial_number", name="uq_wallet_registration_device_serial"),
+        UTF8MB4_TABLE_OPTIONS,
     )
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True, autoincrement=True)
@@ -45,8 +46,8 @@ class WalletDeviceRegistration(Base):
     pass_type_identifier: Mapped[str] = mapped_column(String(255), nullable=False)
     serial_number: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
 
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
-    updated_at: Mapped[datetime | None] = mapped_column(onupdate=func.now(), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(default=naive_utc_now, nullable=False)
+    updated_at: Mapped[datetime | None] = mapped_column(onupdate=naive_utc_now, nullable=True)
 
     card: Mapped[LoyaltyCard] = relationship("LoyaltyCard", back_populates="device_registrations")
 

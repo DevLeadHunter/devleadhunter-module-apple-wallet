@@ -6,9 +6,9 @@ from datetime import datetime
 
 from sqlalchemy import Boolean, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql import func
 
-from core.database import Base
+from core.clock import naive_utc_now
+from core.database import UTF8MB4_TABLE_OPTIONS, Base
 
 
 class MerchantAccount(Base):
@@ -27,6 +27,7 @@ class MerchantAccount(Base):
     """
 
     __tablename__ = "merchant_accounts"
+    __table_args__ = (UTF8MB4_TABLE_OPTIONS,)
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True, autoincrement=True)
     program_id: Mapped[int] = mapped_column(Integer, nullable=False, unique=True, index=True)
@@ -35,8 +36,8 @@ class MerchantAccount(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="1")
     last_login_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
-    updated_at: Mapped[datetime | None] = mapped_column(onupdate=func.now(), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(default=naive_utc_now, nullable=False)
+    updated_at: Mapped[datetime | None] = mapped_column(onupdate=naive_utc_now, nullable=True)
 
     def __repr__(self) -> str:
         """String representation of the merchant account."""
