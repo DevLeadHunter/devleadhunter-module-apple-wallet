@@ -2,6 +2,7 @@
 
 Distinct from the public ``wallet`` router (Apple's device + customer enrollment): these
 require an app session (``get_current_active_user``) and are scoped to the caller's cards.
+The core closes them (404) while the module is switched off.
 """
 
 from __future__ import annotations
@@ -12,10 +13,8 @@ from sqlalchemy.orm import Session
 
 from core.config import settings
 from core.database import get_db
-from enums.app_module import AppModule
 from models.user import User
 from services.auth_service import get_current_active_user
-from services.module_service import module_service
 
 from devleadhunter_apple_wallet.models.loyalty_automation import LoyaltyAutomation
 from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
@@ -31,16 +30,6 @@ from devleadhunter_apple_wallet.services.wallet_subscription_service import (
 )
 
 router = APIRouter(prefix="/wallet/merchant", tags=["wallet-merchant"])
-
-
-def require_wallet_module(
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db),
-) -> User:
-    """Ensure the caller has the Apple Wallet module active before any merchant action."""
-    if not module_service.is_active(db, current_user.id, AppModule.APPLE_WALLET.value):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Module Apple Wallet non activé")
-    return current_user
 
 
 class ScanBody(BaseModel):
@@ -172,7 +161,7 @@ class MerchantCredentialsResponse(BaseModel):
 @router.post("/scan", response_model=ScanResponse)
 async def scan_card(
     body: ScanBody,
-    current_user: User = Depends(require_wallet_module),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> ScanResponse:
     """Add a stamp to the scanned card and return its refreshed state."""
@@ -194,7 +183,7 @@ async def scan_card(
 @router.post("/automations/{automation_id}/broadcast", response_model=BroadcastResponse)
 async def broadcast_automation(
     automation_id: int,
-    current_user: User = Depends(require_wallet_module),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> BroadcastResponse:
     """Fan a broadcast automation out to every active card of its program."""
@@ -208,7 +197,7 @@ async def broadcast_automation(
 @router.get("/programs/{program_id}/automations", response_model=list[AutomationResponse])
 async def list_automations(
     program_id: int,
-    current_user: User = Depends(require_wallet_module),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> list[AutomationResponse]:
     """List a program's automations."""
@@ -223,7 +212,7 @@ async def list_automations(
 async def create_automation(
     program_id: int,
     body: AutomationBody,
-    current_user: User = Depends(require_wallet_module),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> AutomationResponse:
     """Create an automation for a program."""
@@ -248,7 +237,7 @@ async def create_automation(
 async def update_automation(
     automation_id: int,
     body: AutomationUpdateBody,
-    current_user: User = Depends(require_wallet_module),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> AutomationResponse:
     """Apply the operator's edits to one of their automations."""
@@ -268,7 +257,7 @@ async def update_automation(
 @router.delete("/automations/{automation_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_automation(
     automation_id: int,
-    current_user: User = Depends(require_wallet_module),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> Response:
     """Delete one of the operator's automations."""
@@ -282,7 +271,7 @@ async def delete_automation(
 @router.post("/subscription/checkout", response_model=SubscriptionCheckoutResponse)
 async def start_subscription_checkout(
     body: SubscriptionCheckoutBody,
-    current_user: User = Depends(require_wallet_module),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> SubscriptionCheckoutResponse:
     """Open a Stripe subscription checkout (free trial, auto-debit) for a program."""
@@ -301,7 +290,7 @@ async def start_subscription_checkout(
 @router.get("/subscription/{program_id}", response_model=SubscriptionStatusResponse)
 async def subscription_status(
     program_id: int,
-    current_user: User = Depends(require_wallet_module),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> SubscriptionStatusResponse:
     """Return a program's subscription status and whether it currently grants access."""
@@ -312,7 +301,7 @@ async def subscription_status(
 @router.post("/subscription/{program_id}/cancel", response_model=SubscriptionStatusResponse)
 async def cancel_subscription(
     program_id: int,
-    current_user: User = Depends(require_wallet_module),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> SubscriptionStatusResponse:
     """Cancel a program's subscription immediately."""
@@ -326,7 +315,7 @@ async def cancel_subscription(
 @router.post("/{program_id}/login-credentials", response_model=MerchantCredentialsResponse)
 async def provision_merchant_login(
     program_id: int,
-    current_user: User = Depends(require_wallet_module),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> MerchantCredentialsResponse:
     """Create (or reset) the merchant's login for a program and return it once for handover."""

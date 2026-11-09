@@ -2,7 +2,7 @@
 
 The operator sells the module and configures one program per merchant here (stamps, reward,
 brand colors), then hands the merchant a login (see ``/wallet/merchant/.../login-credentials``).
-All routes require the operator to have the Apple Wallet module active.
+The core closes every route (404) while the module is switched off.
 """
 
 from __future__ import annotations
@@ -15,9 +15,9 @@ from sqlalchemy.orm import Session
 
 from core.database import get_db
 from models.user import User
+from services.auth_service import get_current_active_user
 
 from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
-from devleadhunter_apple_wallet.routes.wallet_merchant import require_wallet_module
 from devleadhunter_apple_wallet.services.wallet_program_service import WalletProgramError, wallet_program_service
 
 router = APIRouter(prefix="/wallet/programs", tags=["wallet-programs"])
@@ -106,7 +106,7 @@ def _to_response(program: LoyaltyProgram) -> WalletProgramResponse:
 @router.post("", response_model=WalletProgramResponse)
 async def create_program(
     body: WalletProgramCreateBody,
-    current_user: User = Depends(require_wallet_module),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> WalletProgramResponse:
     """Create a draft program (with a public enrollment token) for the operator."""
@@ -128,7 +128,7 @@ async def create_program(
 
 @router.get("", response_model=list[WalletProgramResponse])
 async def list_programs(
-    current_user: User = Depends(require_wallet_module),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> list[WalletProgramResponse]:
     """List the operator's loyalty programs, most recent first."""
@@ -138,7 +138,7 @@ async def list_programs(
 @router.get("/{program_id}", response_model=WalletProgramResponse)
 async def get_program(
     program_id: int,
-    current_user: User = Depends(require_wallet_module),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> WalletProgramResponse:
     """Return one of the operator's programs."""
@@ -152,7 +152,7 @@ async def get_program(
 async def update_program(
     program_id: int,
     body: WalletProgramUpdateBody,
-    current_user: User = Depends(require_wallet_module),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> WalletProgramResponse:
     """Apply the operator's edits to one of their programs."""
