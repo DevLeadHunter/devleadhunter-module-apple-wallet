@@ -11,11 +11,10 @@ L'opérateur crée le programme et remet au commerçant son accès à son propre
   admin ne l'allume pas (Paramètres → Administration → Modules). Coupé, le module ne touche à rien : ses routes
   répondent 404, son worker d'automatisations est arrêté, et le cœur retient tout email ou SMS « Carte fidélité »
   (« Module « Cartes Apple Wallet » désactivé »). Les webhooks Stripe de ses abonnements restent traités.
-- Allumé, aucun prospect n'a encore de démo de carte : tout modèle qui contient `{lien_carte}` est retenu (« Pas de
-  démo de carte de fidélité pour ce prospect »), et `{prix_carte}` affiche le prix de la plateforme dans la devise du
-  prospect (`WALLET_SUBSCRIPTION_PRICE_CENTS`, 1900 → « 19 € »).
-- Avant la première vente : certificats Apple et test sur un vrai iPhone, Stripe en sandbox, démo de carte pour un
-  prospect. Les maquettes et le rappel produit sont dans [`design/wallet/`](design/wallet/README.md).
+- Allumé, il ne lie aucune démo de carte (aucune page ne montre sa carte à un prospect) : tout modèle qui contient
+  `{lien_carte}` est retenu (« Pas de démo de carte de fidélité pour ce prospect »), et `{prix_carte}` affiche le prix
+  de la plateforme dans la devise du prospect (`WALLET_SUBSCRIPTION_PRICE_CENTS`, 1900 centimes, soit « 19 € »).
+- Les maquettes et le rappel produit sont dans [`design/wallet/`](design/wallet/README.md).
 
 ## Contenu
 
@@ -29,7 +28,7 @@ L'opérateur crée le programme et remet au commerçant son accès à son propre
 
 Le contrat est décrit dans `docs/PRODUCT_MODULES.md` du cœur : le cœur n'importe jamais le module, il le découvre.
 
-- **API** : le `pyproject.toml` déclare l'entry point `devleadhunter.product_modules` →
+- **API** : le `pyproject.toml` déclare l'entry point `devleadhunter.product_modules` :
   `apple-wallet = "devleadhunter_apple_wallet.module:AppleWalletModule"`. Le module fournit ses routers, son worker,
   ses migrations (lancées après celles du cœur), son offre de campagne, ses emails et son traitement des événements
   Stripe de ses abonnements (reconnus à la métadonnée `type: wallet_subscription` que pose son checkout). Il importe
