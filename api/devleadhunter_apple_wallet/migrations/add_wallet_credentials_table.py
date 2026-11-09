@@ -1,56 +1,33 @@
-"""
-Migration: Apple Wallet module — encrypted credentials table.
+"""Create the table of the operators' Apple signing and APNs material.
 
-Stores one row per operator holding the Apple signing + APNs material. The secret
-columns (signing key/cert, WWDR, APNs auth key) hold ``encryption_service`` ciphertext,
-never plaintext; the identifiers stay in clear.
+One row per operator. The secret columns (signing key and certificate, WWDR chain, APNs auth key) hold
+``encryption_service`` ciphertext, never plaintext; the identifiers stay in clear. Re-runnable.
 
-Run with:
-    python migrations/add_wallet_credentials_table.py
+Run alone from the core's ``api/``: ``python -m devleadhunter_apple_wallet.migrations.add_wallet_credentials_table``.
 """
 
 from __future__ import annotations
 
-import os
-import sys
+from sqlalchemy.engine import Engine
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# The credentials point at the core's users: their table must be on the metadata to render the foreign key.
+import models.user  # noqa: F401
+from core.database import engine as core_engine
 
-from sqlalchemy import text
-
-from core.database import engine
-
-_WALLET_CREDENTIALS_DDL = """
-CREATE TABLE IF NOT EXISTS wallet_credentials (
-  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
-  pass_type_identifier VARCHAR(255) NULL,
-  team_id VARCHAR(64) NULL,
-  apns_key_id VARCHAR(64) NULL,
-  signing_certificate TEXT NULL,
-  signing_private_key TEXT NULL,
-  wwdr_certificate TEXT NULL,
-  apns_auth_key TEXT NULL,
-  is_active TINYINT(1) NOT NULL DEFAULT 0,
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NULL,
-  UNIQUE KEY uq_wallet_credentials_user_id (user_id),
-  CONSTRAINT fk_wallet_credentials_user FOREIGN KEY (user_id) REFERENCES users (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-"""
+from devleadhunter_apple_wallet.migrations.schema_changes import WalletSchemaChanges
+from devleadhunter_apple_wallet.models.wallet_credentials import WalletCredentials
 
 
-def run_migration() -> None:
-    print("Running migration: add_wallet_credentials_table")
-    with engine.connect() as conn:
-        conn.execute(text(_WALLET_CREDENTIALS_DDL))
-        conn.commit()
-    print("  + wallet_credentials table")
-    print("Migration completed successfully.")
+def run_migration(engine: Engine | None = None) -> None:
+    """
+    Create the credentials table when it is missing.
+
+    Args:
+        engine: The database to migrate, the core's when omitted.
+    """
+    created: list[str] = WalletSchemaChanges(engine or core_engine).create_missing_tables(WalletCredentials)
+    print(f"add_wallet_credentials_table: created {', '.join(created) or 'nothing (present)'}")
 
 
 if __name__ == "__main__":
-    print("=" * 60)
-    print("Migration: Apple Wallet credentials table")
-    print("=" * 60)
     run_migration()

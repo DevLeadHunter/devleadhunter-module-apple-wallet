@@ -1,51 +1,31 @@
-"""
-Migration: ``merchant_accounts`` table — a merchant's login to their wallet dashboard.
+"""Create ``merchant_accounts``, the merchants' logins to their own space.
 
-One account per loyalty program, separate from the operator's ``users`` — the dedicated
-client surface (like the Storyblok handover for websites).
+One account per loyalty program, apart from the operator's ``users`` (the handover model of the Storyblok space for
+the websites). Re-runnable.
 
-Run with:
-    python migrations/add_merchant_accounts.py
+Run alone from the core's ``api/``: ``python -m devleadhunter_apple_wallet.migrations.add_merchant_accounts``.
 """
 
 from __future__ import annotations
 
-import os
-import sys
+from sqlalchemy.engine import Engine
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from core.database import engine as core_engine
 
-from sqlalchemy import text
-
-from core.database import engine
-
-_MERCHANT_ACCOUNTS_DDL = """
-CREATE TABLE IF NOT EXISTS merchant_accounts (
-  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  program_id INT NOT NULL,
-  email VARCHAR(255) NOT NULL,
-  hashed_password VARCHAR(255) NOT NULL,
-  is_active TINYINT(1) NOT NULL DEFAULT 1,
-  last_login_at DATETIME NULL,
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NULL,
-  UNIQUE KEY uq_merchant_accounts_program_id (program_id),
-  UNIQUE KEY uq_merchant_accounts_email (email)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-"""
+from devleadhunter_apple_wallet.migrations.schema_changes import WalletSchemaChanges
+from devleadhunter_apple_wallet.models.merchant_account import MerchantAccount
 
 
-def run_migration() -> None:
-    print("Running migration: add_merchant_accounts")
-    with engine.connect() as conn:
-        conn.execute(text(_MERCHANT_ACCOUNTS_DDL))
-        conn.commit()
-    print("  + merchant_accounts table")
-    print("Migration completed successfully.")
+def run_migration(engine: Engine | None = None) -> None:
+    """
+    Create the merchant accounts table when it is missing.
+
+    Args:
+        engine: The database to migrate, the core's when omitted.
+    """
+    created: list[str] = WalletSchemaChanges(engine or core_engine).create_missing_tables(MerchantAccount)
+    print(f"add_merchant_accounts: created {', '.join(created) or 'nothing (present)'}")
 
 
 if __name__ == "__main__":
-    print("=" * 60)
-    print("Migration: merchant_accounts table")
-    print("=" * 60)
     run_migration()

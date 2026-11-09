@@ -1,37 +1,32 @@
-"""
-Migration: Apple Wallet — ``loyalty_cards.current_offer``.
+"""Add ``loyalty_cards.current_offer``, the offer of the moment an automation writes on a card.
 
-The automation engine writes the 'offer of the moment' onto a card; the pass renders it
-as a field whose change triggers the lock-screen notification. The ORM creates the column
-on fresh databases; this migration adds it to any pre-existing table.
+The pass shows it as a field whose change triggers the lock-screen notification. A table created from the models
+already has the column: nothing to do then.
 
-Run with:
-    python migrations/add_loyalty_card_current_offer.py
+Run alone from the core's ``api/``: ``python -m devleadhunter_apple_wallet.migrations.add_loyalty_card_current_offer``.
 """
 
 from __future__ import annotations
 
-import os
-import sys
+from sqlalchemy.engine import Engine
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from core.database import engine as core_engine
 
-from sqlalchemy import text
-
-from core.database import engine
+from devleadhunter_apple_wallet.migrations.schema_changes import WalletSchemaChanges
 
 
-def run_migration() -> None:
-    print("Running migration: add_loyalty_card_current_offer")
-    with engine.connect() as conn:
-        conn.execute(text("ALTER TABLE loyalty_cards ADD COLUMN IF NOT EXISTS current_offer VARCHAR(255) NULL"))
-        conn.commit()
-    print("  + loyalty_cards.current_offer")
-    print("Migration completed successfully.")
+def run_migration(engine: Engine | None = None) -> None:
+    """
+    Add the column to a cards table that lacks it.
+
+    Args:
+        engine: The database to migrate, the core's when omitted.
+    """
+    added: bool = WalletSchemaChanges(engine or core_engine).add_missing_column(
+        "loyalty_cards", "current_offer", "VARCHAR(255)"
+    )
+    print(f"add_loyalty_card_current_offer: column {'added' if added else 'present'}")
 
 
 if __name__ == "__main__":
-    print("=" * 60)
-    print("Migration: loyalty_cards.current_offer")
-    print("=" * 60)
     run_migration()
