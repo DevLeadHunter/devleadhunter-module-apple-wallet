@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Secrets: the module reads the core's api/.env, never one of its own
+.env
+.env.*
+
+# Nuxt layer
+node_modules/
+.nuxt/
+.nuxt-typecheck/
+.output/
+.data/
+.cache/
+
+# Editors and OS
+.idea/
+.vscode/
+*.log
+.DS_Store
+Thumbs.db

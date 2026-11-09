@@ -1,0 +1,3 @@
+# Normalize all text files to LF in the repo AND in the working tree on checkout, like the core.
+* text=auto eol=lf
+*.svg text eol=lf
