@@ -20,11 +20,15 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from core.database import Base
-from models.loyalty_card import LoyaltyCard
-from models.loyalty_program import LoyaltyProgram
-from models.wallet_credentials import WalletCredentials
-from services.wallet_credentials_service import WalletSigningMaterial, wallet_credentials_service
-from services.wallet_pass_service import WalletPassError, wallet_pass_service
+
+from devleadhunter_apple_wallet.models.loyalty_card import LoyaltyCard
+from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
+from devleadhunter_apple_wallet.models.wallet_credentials import WalletCredentials
+from devleadhunter_apple_wallet.services.wallet_credentials_service import (
+    WalletSigningMaterial,
+    wallet_credentials_service,
+)
+from devleadhunter_apple_wallet.services.wallet_pass_service import WalletPassError, wallet_pass_service
 
 _WEB_SERVICE_URL = "https://api.example.fr/api/v1/wallet"
 

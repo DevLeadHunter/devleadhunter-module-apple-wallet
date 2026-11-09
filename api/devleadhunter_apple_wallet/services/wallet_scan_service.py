@@ -15,13 +15,13 @@ from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
-from enums.loyalty_card_status import LoyaltyCardStatus
-from models.loyalty_card import LoyaltyCard
-from models.loyalty_program import LoyaltyProgram
-from models.loyalty_scan_event import LoyaltyScanEvent
-from services.wallet_automation_service import wallet_automation_service
-from services.wallet_push_service import wallet_push_service
-from services.wallet_subscription_service import wallet_subscription_service
+from devleadhunter_apple_wallet.enums.loyalty_card_status import LoyaltyCardStatus
+from devleadhunter_apple_wallet.models.loyalty_card import LoyaltyCard
+from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
+from devleadhunter_apple_wallet.models.loyalty_scan_event import LoyaltyScanEvent
+from devleadhunter_apple_wallet.services.wallet_automation_service import wallet_automation_service
+from devleadhunter_apple_wallet.services.wallet_push_service import wallet_push_service
+from devleadhunter_apple_wallet.services.wallet_subscription_service import wallet_subscription_service
 
 logger = logging.getLogger(__name__)
 

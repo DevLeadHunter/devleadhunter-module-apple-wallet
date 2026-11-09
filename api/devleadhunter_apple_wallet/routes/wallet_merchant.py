@@ -13,15 +13,22 @@ from sqlalchemy.orm import Session
 from core.config import settings
 from core.database import get_db
 from enums.app_module import AppModule
-from models.loyalty_automation import LoyaltyAutomation
-from models.loyalty_program import LoyaltyProgram
 from models.user import User
 from services.auth_service import get_current_active_user
-from services.merchant_auth_service import merchant_auth_service
 from services.module_service import module_service
-from services.wallet_automation_service import WalletAutomationError, wallet_automation_service
-from services.wallet_scan_service import WalletScanError, wallet_scan_service
-from services.wallet_subscription_service import WalletSubscriptionError, wallet_subscription_service
+
+from devleadhunter_apple_wallet.models.loyalty_automation import LoyaltyAutomation
+from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
+from devleadhunter_apple_wallet.services.merchant_auth_service import merchant_auth_service
+from devleadhunter_apple_wallet.services.wallet_automation_service import (
+    WalletAutomationError,
+    wallet_automation_service,
+)
+from devleadhunter_apple_wallet.services.wallet_scan_service import WalletScanError, wallet_scan_service
+from devleadhunter_apple_wallet.services.wallet_subscription_service import (
+    WalletSubscriptionError,
+    wallet_subscription_service,
+)
 
 router = APIRouter(prefix="/wallet/merchant", tags=["wallet-merchant"])
 

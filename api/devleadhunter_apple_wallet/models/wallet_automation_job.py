@@ -9,7 +9,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
 from core.database import Base
-from enums.wallet_automation_job_status import WalletAutomationJobStatus
+
+from devleadhunter_apple_wallet.enums.wallet_automation_job_status import WalletAutomationJobStatus
 
 
 class WalletAutomationJob(Base):

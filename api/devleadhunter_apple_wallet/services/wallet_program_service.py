@@ -10,9 +10,9 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from enums.loyalty_program_status import LoyaltyProgramStatus
-from models.loyalty_program import LoyaltyProgram
-from services.wallet_enrollment_service import wallet_enrollment_service
+from devleadhunter_apple_wallet.enums.loyalty_program_status import LoyaltyProgramStatus
+from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
+from devleadhunter_apple_wallet.services.wallet_enrollment_service import wallet_enrollment_service
 
 # Fields an operator may edit through an update; everything else (ids, token, status flow) is managed.
 _EDITABLE_FIELDS = (

@@ -12,8 +12,9 @@ from dataclasses import dataclass
 from sqlalchemy.orm import Session
 
 from core.config import settings
-from models.wallet_credentials import WalletCredentials
 from services.encryption_service import encryption_service
+
+from devleadhunter_apple_wallet.models.wallet_credentials import WalletCredentials
 
 
 class WalletCredentialsMissingError(RuntimeError):

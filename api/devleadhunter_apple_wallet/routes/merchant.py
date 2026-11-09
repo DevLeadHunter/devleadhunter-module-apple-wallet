@@ -14,16 +14,11 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from core.database import get_db
-from models.loyalty_card import LoyaltyCard
-from models.loyalty_program import LoyaltyProgram
-from models.merchant_account import MerchantAccount
-from services.merchant_auth_service import get_current_merchant, merchant_auth_service
-from services.merchant_dashboard_service import merchant_dashboard_service
-from services.wallet_automation_service import WalletAutomationError, wallet_automation_service
-from services.wallet_scan_service import WalletScanError, wallet_scan_service
-from services.wallet_subscription_service import wallet_subscription_service
 
-from .wallet_merchant import (
+from devleadhunter_apple_wallet.models.loyalty_card import LoyaltyCard
+from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
+from devleadhunter_apple_wallet.models.merchant_account import MerchantAccount
+from devleadhunter_apple_wallet.routes.wallet_merchant import (
     AUTOMATION_FIELD_MAP,
     AutomationBody,
     AutomationResponse,
@@ -31,6 +26,14 @@ from .wallet_merchant import (
     BroadcastResponse,
     automation_to_response,
 )
+from devleadhunter_apple_wallet.services.merchant_auth_service import get_current_merchant, merchant_auth_service
+from devleadhunter_apple_wallet.services.merchant_dashboard_service import merchant_dashboard_service
+from devleadhunter_apple_wallet.services.wallet_automation_service import (
+    WalletAutomationError,
+    wallet_automation_service,
+)
+from devleadhunter_apple_wallet.services.wallet_scan_service import WalletScanError, wallet_scan_service
+from devleadhunter_apple_wallet.services.wallet_subscription_service import wallet_subscription_service
 
 router = APIRouter(prefix="/merchant", tags=["merchant"])
 

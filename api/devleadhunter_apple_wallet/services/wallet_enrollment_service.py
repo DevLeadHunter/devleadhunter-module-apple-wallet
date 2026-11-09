@@ -13,11 +13,11 @@ from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
-from enums.loyalty_card_status import LoyaltyCardStatus
-from models.loyalty_card import LoyaltyCard
-from models.loyalty_program import LoyaltyProgram
-from services.wallet_pass_service import wallet_pass_service
-from services.wallet_subscription_service import wallet_subscription_service
+from devleadhunter_apple_wallet.enums.loyalty_card_status import LoyaltyCardStatus
+from devleadhunter_apple_wallet.models.loyalty_card import LoyaltyCard
+from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
+from devleadhunter_apple_wallet.services.wallet_pass_service import wallet_pass_service
+from devleadhunter_apple_wallet.services.wallet_subscription_service import wallet_subscription_service
 
 _SERIAL_BYTES = 16
 _TOKEN_BYTES = 24

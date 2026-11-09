@@ -12,14 +12,15 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from core.database import Base
-from models.wallet_credentials import WalletCredentials
-from models.wallet_device_registration import WalletDeviceRegistration
-from services.wallet_credentials_service import (
+
+from devleadhunter_apple_wallet.models.wallet_credentials import WalletCredentials
+from devleadhunter_apple_wallet.models.wallet_device_registration import WalletDeviceRegistration
+from devleadhunter_apple_wallet.services.wallet_credentials_service import (
     WalletApnsMaterial,
     WalletCredentialsMissingError,
     wallet_credentials_service,
 )
-from services.wallet_push_service import WalletPushService
+from devleadhunter_apple_wallet.services.wallet_push_service import WalletPushService
 
 
 def _p8_key_pem() -> str:

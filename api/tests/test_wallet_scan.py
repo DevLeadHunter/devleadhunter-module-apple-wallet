@@ -11,17 +11,18 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from core.database import Base
-from enums.loyalty_card_status import LoyaltyCardStatus
-from enums.wallet_subscription_status import WalletSubscriptionStatus
-from models.loyalty_automation import LoyaltyAutomation
-from models.loyalty_card import LoyaltyCard
-from models.loyalty_program import LoyaltyProgram
-from models.loyalty_scan_event import LoyaltyScanEvent
-from models.wallet_automation_job import WalletAutomationJob
-from models.wallet_credentials import WalletCredentials
-from models.wallet_device_registration import WalletDeviceRegistration
-from models.wallet_subscription import WalletSubscription
-from services.wallet_scan_service import WalletScanError, wallet_scan_service
+
+from devleadhunter_apple_wallet.enums.loyalty_card_status import LoyaltyCardStatus
+from devleadhunter_apple_wallet.enums.wallet_subscription_status import WalletSubscriptionStatus
+from devleadhunter_apple_wallet.models.loyalty_automation import LoyaltyAutomation
+from devleadhunter_apple_wallet.models.loyalty_card import LoyaltyCard
+from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
+from devleadhunter_apple_wallet.models.loyalty_scan_event import LoyaltyScanEvent
+from devleadhunter_apple_wallet.models.wallet_automation_job import WalletAutomationJob
+from devleadhunter_apple_wallet.models.wallet_credentials import WalletCredentials
+from devleadhunter_apple_wallet.models.wallet_device_registration import WalletDeviceRegistration
+from devleadhunter_apple_wallet.models.wallet_subscription import WalletSubscription
+from devleadhunter_apple_wallet.services.wallet_scan_service import WalletScanError, wallet_scan_service
 
 _MODULE_TABLES = [
     LoyaltyProgram.__table__,

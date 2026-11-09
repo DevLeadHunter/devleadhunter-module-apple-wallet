@@ -13,12 +13,13 @@ from sqlalchemy.pool import StaticPool
 
 from core.config import settings
 from core.database import Base
-from enums.loyalty_card_status import LoyaltyCardStatus
-from models.loyalty_card import LoyaltyCard
-from models.loyalty_program import LoyaltyProgram
-from models.merchant_account import MerchantAccount
-from services.merchant_auth_service import merchant_auth_service
-from services.merchant_dashboard_service import merchant_dashboard_service
+
+from devleadhunter_apple_wallet.enums.loyalty_card_status import LoyaltyCardStatus
+from devleadhunter_apple_wallet.models.loyalty_card import LoyaltyCard
+from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
+from devleadhunter_apple_wallet.models.merchant_account import MerchantAccount
+from devleadhunter_apple_wallet.services.merchant_auth_service import merchant_auth_service
+from devleadhunter_apple_wallet.services.merchant_dashboard_service import merchant_dashboard_service
 
 
 @pytest.fixture

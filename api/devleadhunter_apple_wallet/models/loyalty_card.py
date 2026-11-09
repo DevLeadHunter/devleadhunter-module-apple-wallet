@@ -10,12 +10,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from core.database import Base
-from enums.loyalty_card_status import LoyaltyCardStatus
+
+from devleadhunter_apple_wallet.enums.loyalty_card_status import LoyaltyCardStatus
 
 if TYPE_CHECKING:
-    from models.loyalty_program import LoyaltyProgram
-    from models.loyalty_scan_event import LoyaltyScanEvent
-    from models.wallet_device_registration import WalletDeviceRegistration
+    from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
+    from devleadhunter_apple_wallet.models.loyalty_scan_event import LoyaltyScanEvent
+    from devleadhunter_apple_wallet.models.wallet_device_registration import WalletDeviceRegistration
 
 
 class LoyaltyCard(Base):

@@ -9,7 +9,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
 from core.database import Base
-from enums.wallet_subscription_status import WalletSubscriptionStatus
+
+from devleadhunter_apple_wallet.enums.wallet_subscription_status import WalletSubscriptionStatus
 
 
 class WalletSubscription(Base):

@@ -10,11 +10,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-import services.wallet_subscription_service as wss
 from core.database import Base
-from enums.wallet_subscription_status import WalletSubscriptionStatus
-from models.loyalty_program import LoyaltyProgram
-from models.wallet_subscription import WalletSubscription
+
+import devleadhunter_apple_wallet.services.wallet_subscription_service as wss
+from devleadhunter_apple_wallet.enums.wallet_subscription_status import WalletSubscriptionStatus
+from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
+from devleadhunter_apple_wallet.models.wallet_subscription import WalletSubscription
 
 
 class _StripeError(Exception):

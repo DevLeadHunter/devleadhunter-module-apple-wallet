@@ -12,7 +12,7 @@ from sqlalchemy.sql import func
 from core.database import Base
 
 if TYPE_CHECKING:
-    from models.loyalty_card import LoyaltyCard
+    from devleadhunter_apple_wallet.models.loyalty_card import LoyaltyCard
 
 
 class WalletDeviceRegistration(Base):

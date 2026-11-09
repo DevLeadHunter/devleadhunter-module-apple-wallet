@@ -11,12 +11,13 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from core.database import Base
-from enums.loyalty_program_status import LoyaltyProgramStatus
+
+from devleadhunter_apple_wallet.enums.loyalty_program_status import LoyaltyProgramStatus
 
 # Import the relationship targets so the mappers configure cleanly.
-from models import loyalty_automation, loyalty_card, loyalty_program  # noqa: F401
-from models.loyalty_program import LoyaltyProgram
-from services.wallet_program_service import WalletProgramError, wallet_program_service
+from devleadhunter_apple_wallet.models import loyalty_automation, loyalty_card, loyalty_program  # noqa: F401
+from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
+from devleadhunter_apple_wallet.services.wallet_program_service import WalletProgramError, wallet_program_service
 
 
 @pytest.fixture

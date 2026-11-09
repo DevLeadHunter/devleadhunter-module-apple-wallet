@@ -14,10 +14,14 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from core.database import get_db
-from enums.wallet_registration_outcome import WalletRegistrationOutcome
-from services.wallet_enrollment_service import WalletEnrollmentError, wallet_enrollment_service
-from services.wallet_pass_service import wallet_pass_service
-from services.wallet_passkit_service import wallet_passkit_service
+
+from devleadhunter_apple_wallet.enums.wallet_registration_outcome import WalletRegistrationOutcome
+from devleadhunter_apple_wallet.services.wallet_enrollment_service import (
+    WalletEnrollmentError,
+    wallet_enrollment_service,
+)
+from devleadhunter_apple_wallet.services.wallet_pass_service import wallet_pass_service
+from devleadhunter_apple_wallet.services.wallet_passkit_service import wallet_passkit_service
 
 router = APIRouter(prefix="/wallet", tags=["wallet"])
 logger = logging.getLogger(__name__)

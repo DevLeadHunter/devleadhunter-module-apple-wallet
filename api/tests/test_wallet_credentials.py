@@ -10,8 +10,9 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from core.database import Base
-from models.wallet_credentials import WalletCredentials
-from services import wallet_credentials_service as wcs
+
+from devleadhunter_apple_wallet.models.wallet_credentials import WalletCredentials
+from devleadhunter_apple_wallet.services import wallet_credentials_service as wcs
 
 
 @pytest.fixture

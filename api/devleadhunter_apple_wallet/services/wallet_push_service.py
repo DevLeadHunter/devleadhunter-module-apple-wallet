@@ -15,8 +15,11 @@ import httpx
 import jwt
 from sqlalchemy.orm import Session
 
-from models.wallet_device_registration import WalletDeviceRegistration
-from services.wallet_credentials_service import WalletApnsMaterial, wallet_credentials_service
+from devleadhunter_apple_wallet.models.wallet_device_registration import WalletDeviceRegistration
+from devleadhunter_apple_wallet.services.wallet_credentials_service import (
+    WalletApnsMaterial,
+    wallet_credentials_service,
+)
 
 _APNS_HOST_PRODUCTION = "https://api.push.apple.com"
 _APNS_HOST_SANDBOX = "https://api.sandbox.push.apple.com"

@@ -16,9 +16,14 @@ import stripe
 from sqlalchemy.orm import Session
 
 from core.config import settings
-from enums.wallet_subscription_status import ACCESS_CUT_STATUSES, ACCESS_GRANTED_STATUSES, WalletSubscriptionStatus
-from models.loyalty_program import LoyaltyProgram
-from models.wallet_subscription import WalletSubscription
+
+from devleadhunter_apple_wallet.enums.wallet_subscription_status import (
+    ACCESS_CUT_STATUSES,
+    ACCESS_GRANTED_STATUSES,
+    WalletSubscriptionStatus,
+)
+from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
+from devleadhunter_apple_wallet.models.wallet_subscription import WalletSubscription
 
 logger = logging.getLogger(__name__)
 

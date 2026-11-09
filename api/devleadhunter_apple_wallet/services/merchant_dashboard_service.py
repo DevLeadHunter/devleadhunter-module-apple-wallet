@@ -7,9 +7,9 @@ from dataclasses import dataclass
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from enums.loyalty_card_status import LoyaltyCardStatus
-from models.loyalty_card import LoyaltyCard
-from models.loyalty_program import LoyaltyProgram
+from devleadhunter_apple_wallet.enums.loyalty_card_status import LoyaltyCardStatus
+from devleadhunter_apple_wallet.models.loyalty_card import LoyaltyCard
+from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
 
 _CARDS_PAGE_SIZE = 100
 

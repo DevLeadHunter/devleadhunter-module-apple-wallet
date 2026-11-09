@@ -22,9 +22,13 @@ from PIL import Image, ImageDraw
 from sqlalchemy.orm import Session
 
 from core.config import settings
-from models.loyalty_card import LoyaltyCard
-from models.loyalty_program import LoyaltyProgram
-from services.wallet_credentials_service import WalletSigningMaterial, wallet_credentials_service
+
+from devleadhunter_apple_wallet.models.loyalty_card import LoyaltyCard
+from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
+from devleadhunter_apple_wallet.services.wallet_credentials_service import (
+    WalletSigningMaterial,
+    wallet_credentials_service,
+)
 
 logger = logging.getLogger(__name__)
 

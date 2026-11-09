@@ -11,14 +11,15 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from core.database import Base
-from enums.loyalty_automation_trigger import LoyaltyAutomationTrigger
-from enums.loyalty_card_status import LoyaltyCardStatus
-from enums.loyalty_program_status import LoyaltyProgramStatus
-from models.loyalty_automation import LoyaltyAutomation
-from models.loyalty_card import LoyaltyCard
-from models.loyalty_program import LoyaltyProgram
-from models.loyalty_scan_event import LoyaltyScanEvent
-from models.wallet_device_registration import WalletDeviceRegistration
+
+from devleadhunter_apple_wallet.enums.loyalty_automation_trigger import LoyaltyAutomationTrigger
+from devleadhunter_apple_wallet.enums.loyalty_card_status import LoyaltyCardStatus
+from devleadhunter_apple_wallet.enums.loyalty_program_status import LoyaltyProgramStatus
+from devleadhunter_apple_wallet.models.loyalty_automation import LoyaltyAutomation
+from devleadhunter_apple_wallet.models.loyalty_card import LoyaltyCard
+from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
+from devleadhunter_apple_wallet.models.loyalty_scan_event import LoyaltyScanEvent
+from devleadhunter_apple_wallet.models.wallet_device_registration import WalletDeviceRegistration
 
 _MODULE_TABLES = [
     LoyaltyProgram.__table__,

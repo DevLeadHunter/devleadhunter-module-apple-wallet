@@ -14,11 +14,11 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from core.database import get_db
-from models.loyalty_program import LoyaltyProgram
 from models.user import User
-from services.wallet_program_service import WalletProgramError, wallet_program_service
 
-from .wallet_merchant import require_wallet_module
+from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
+from devleadhunter_apple_wallet.routes.wallet_merchant import require_wallet_module
+from devleadhunter_apple_wallet.services.wallet_program_service import WalletProgramError, wallet_program_service
 
 router = APIRouter(prefix="/wallet/programs", tags=["wallet-programs"])
 

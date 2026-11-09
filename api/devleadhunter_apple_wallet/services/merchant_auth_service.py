@@ -18,8 +18,9 @@ from sqlalchemy.orm import Session
 
 from core.config import settings
 from core.database import get_db
-from models.merchant_account import MerchantAccount
 from services.auth_service import AuthService
+
+from devleadhunter_apple_wallet.models.merchant_account import MerchantAccount
 
 _MERCHANT_TOKEN_TYPE = "merchant"
 _MERCHANT_EMAIL_DOMAIN = "merchant.dibodev.fr"

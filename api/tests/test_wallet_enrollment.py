@@ -17,13 +17,17 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from core.database import Base
-from enums.wallet_subscription_status import WalletSubscriptionStatus
-from models.loyalty_card import LoyaltyCard
-from models.loyalty_program import LoyaltyProgram
-from models.wallet_credentials import WalletCredentials
-from models.wallet_subscription import WalletSubscription
-from services.wallet_credentials_service import wallet_credentials_service
-from services.wallet_enrollment_service import WalletEnrollmentError, wallet_enrollment_service
+
+from devleadhunter_apple_wallet.enums.wallet_subscription_status import WalletSubscriptionStatus
+from devleadhunter_apple_wallet.models.loyalty_card import LoyaltyCard
+from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
+from devleadhunter_apple_wallet.models.wallet_credentials import WalletCredentials
+from devleadhunter_apple_wallet.models.wallet_subscription import WalletSubscription
+from devleadhunter_apple_wallet.services.wallet_credentials_service import wallet_credentials_service
+from devleadhunter_apple_wallet.services.wallet_enrollment_service import (
+    WalletEnrollmentError,
+    wallet_enrollment_service,
+)
 
 
 def _self_signed(common_name: str) -> tuple[str, str]:

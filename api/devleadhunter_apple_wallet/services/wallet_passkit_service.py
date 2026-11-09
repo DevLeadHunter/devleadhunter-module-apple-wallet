@@ -13,9 +13,9 @@ from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
-from enums.wallet_registration_outcome import WalletRegistrationOutcome
-from models.loyalty_card import LoyaltyCard
-from models.wallet_device_registration import WalletDeviceRegistration
+from devleadhunter_apple_wallet.enums.wallet_registration_outcome import WalletRegistrationOutcome
+from devleadhunter_apple_wallet.models.loyalty_card import LoyaltyCard
+from devleadhunter_apple_wallet.models.wallet_device_registration import WalletDeviceRegistration
 
 _APPLE_PASS_SCHEME = "ApplePass"
 
