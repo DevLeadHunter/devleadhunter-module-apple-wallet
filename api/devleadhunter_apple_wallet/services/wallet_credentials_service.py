@@ -11,10 +11,10 @@ from dataclasses import dataclass
 
 from sqlalchemy.orm import Session
 
-from core.config import settings
 from services.encryption_service import encryption_service
 
 from devleadhunter_apple_wallet.models.wallet_credentials import WalletCredentials
+from devleadhunter_apple_wallet.settings import wallet_settings
 
 
 class WalletCredentialsMissingError(RuntimeError):
@@ -126,26 +126,26 @@ class WalletCredentialsService:
         if self.get_for_user(db, user_id) is not None:
             return None
         settings_material = (
-            settings.wallet_pass_type_identifier,
-            settings.wallet_team_id,
-            settings.wallet_apns_key_id,
-            settings.wallet_signing_certificate,
-            settings.wallet_signing_private_key,
-            settings.wallet_wwdr_certificate,
-            settings.wallet_apns_auth_key,
+            wallet_settings.pass_type_identifier,
+            wallet_settings.team_id,
+            wallet_settings.apns_key_id,
+            wallet_settings.signing_certificate,
+            wallet_settings.signing_private_key,
+            wallet_settings.wwdr_certificate,
+            wallet_settings.apns_auth_key,
         )
         if not all(settings_material):
             return None
         return self.save_for_user(
             db,
             user_id,
-            pass_type_identifier=settings.wallet_pass_type_identifier,
-            team_id=settings.wallet_team_id,
-            apns_key_id=settings.wallet_apns_key_id,
-            signing_certificate=settings.wallet_signing_certificate,
-            signing_private_key=settings.wallet_signing_private_key,
-            wwdr_certificate=settings.wallet_wwdr_certificate,
-            apns_auth_key=settings.wallet_apns_auth_key,
+            pass_type_identifier=wallet_settings.pass_type_identifier,
+            team_id=wallet_settings.team_id,
+            apns_key_id=wallet_settings.apns_key_id,
+            signing_certificate=wallet_settings.signing_certificate,
+            signing_private_key=wallet_settings.signing_private_key,
+            wwdr_certificate=wallet_settings.wwdr_certificate,
+            apns_auth_key=wallet_settings.apns_auth_key,
         )
 
     def require_signing_material(self, db: Session, user_id: int) -> WalletSigningMaterial:

@@ -24,6 +24,7 @@ from devleadhunter_apple_wallet.enums.wallet_subscription_status import (
 )
 from devleadhunter_apple_wallet.models.loyalty_program import LoyaltyProgram
 from devleadhunter_apple_wallet.models.wallet_subscription import WalletSubscription
+from devleadhunter_apple_wallet.settings import wallet_settings
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +79,7 @@ class WalletSubscriptionService:
             raise WalletSubscriptionError(f"No loyalty program {program_id} for user {user_id}.")
 
         client = self._client()
-        price_cents = settings.wallet_subscription_price_cents
+        price_cents = wallet_settings.subscription_price_cents
         metadata = {"program_id": str(program_id), "user_id": str(user_id), "type": _SUBSCRIPTION_METADATA_TYPE}
         try:
             session = client.checkout.Session.create(
@@ -95,7 +96,7 @@ class WalletSubscriptionService:
                     }
                 ],
                 subscription_data={
-                    "trial_period_days": settings.wallet_subscription_trial_days,
+                    "trial_period_days": wallet_settings.subscription_trial_days,
                     "metadata": metadata,
                 },
                 success_url=success_url,

@@ -89,7 +89,7 @@ def test_require_signing_raises_when_a_secret_is_missing(session: Session) -> No
 def test_bootstrap_from_settings_seeds_then_noops(session: Session, monkeypatch: pytest.MonkeyPatch) -> None:
     """A full env-provided set seeds the credentials once, then bootstrap is a no-op."""
     for name, value in _full_material().items():
-        monkeypatch.setattr(wcs.settings, f"wallet_{name}", value, raising=False)
+        monkeypatch.setattr(wcs.wallet_settings, name, value)
     seeded = wcs.wallet_credentials_service.bootstrap_from_settings(session, 1)
     assert seeded is not None
     assert seeded.is_active is True
@@ -100,6 +100,6 @@ def test_bootstrap_from_settings_skips_when_incomplete(session: Session, monkeyp
     """An incomplete env set seeds nothing rather than storing a half credential."""
     material = _full_material() | {"apns_auth_key": ""}
     for name, value in material.items():
-        monkeypatch.setattr(wcs.settings, f"wallet_{name}", value, raising=False)
+        monkeypatch.setattr(wcs.wallet_settings, name, value)
     assert wcs.wallet_credentials_service.bootstrap_from_settings(session, 2) is None
     assert wcs.wallet_credentials_service.get_for_user(session, 2) is None
