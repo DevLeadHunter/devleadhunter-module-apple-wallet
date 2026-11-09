@@ -38,7 +38,11 @@ _STRIPE_STATUS_MAP: dict[str, str] = {
     "incomplete": WalletSubscriptionStatus.INCOMPLETE.value,
     "incomplete_expired": WalletSubscriptionStatus.INCOMPLETE.value,
 }
+# The checkout stamps it on the session and on the subscription it creates: what makes a Stripe object the wallet's.
 _SUBSCRIPTION_METADATA_TYPE = "wallet_subscription"
+_SUBSCRIPTION_EVENT_TYPES: frozenset[str] = frozenset(
+    {"customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted"}
+)
 
 
 class WalletSubscriptionError(RuntimeError):
@@ -191,29 +195,50 @@ class WalletSubscriptionService:
         db.refresh(record)
         return record
 
-    def handle_webhook_event(self, db: Session, event: dict[str, Any]) -> bool:
-        """Apply a Stripe webhook event to the local subscription state.
+    def handle_stripe_event(self, db: Session, event: dict[str, Any]) -> str | None:
+        """Apply a Stripe webhook event of a wallet subscription to the local subscription state.
+
+        An event is the wallet's only when its object carries the metadata the wallet checkout sets
+        (``type`` = ``wallet_subscription``, on the session and on the subscription it creates). Any
+        other event — a site order, a receptionist subscription, a credits purchase — is left to its
+        owner, whatever its type.
 
         Args:
             db: Database session.
             event: The verified Stripe event.
 
         Returns:
-            ``True`` when the event belonged to a Wallet subscription and was applied.
+            What was done with a wallet subscription's event, or ``None`` when the event is not one.
         """
         event_type = event.get("type")
-        obj = event.get("data", {}).get("object", {})
-        if event_type == "checkout.session.completed":
-            if obj.get("mode") != "subscription" or obj.get("metadata", {}).get("type") != _SUBSCRIPTION_METADATA_TYPE:
-                return False
-            return self._link_checkout(db, obj)
-        if event_type in (
-            "customer.subscription.created",
-            "customer.subscription.updated",
-            "customer.subscription.deleted",
-        ):
-            return self._sync_subscription(db, obj)
-        return False
+        stripe_object: dict[str, Any] = (event.get("data") or {}).get("object") or {}
+        if not self.is_wallet_subscription_object(stripe_object):
+            return None
+        if event_type == "checkout.session.completed" and stripe_object.get("mode") == "subscription":
+            if self._link_checkout(db, stripe_object):
+                return "Wallet subscription checkout linked"
+            logger.warning("[Wallet] Checkout %s matches no wallet subscription", stripe_object.get("id"))
+            return "Wallet subscription checkout ignored: no local subscription"
+        if event_type in _SUBSCRIPTION_EVENT_TYPES:
+            if self._sync_subscription(db, stripe_object):
+                return "Wallet subscription synced"
+            logger.warning("[Wallet] Stripe subscription %s matches no wallet subscription", stripe_object.get("id"))
+            return "Wallet subscription event ignored: no local subscription"
+        return f"Wallet subscription event ignored: {event_type}"
+
+    @staticmethod
+    def is_wallet_subscription_object(stripe_object: dict[str, Any]) -> bool:
+        """
+        Whether a Stripe object (a checkout session, a subscription) was created by the wallet checkout.
+
+        Args:
+            stripe_object: The ``data.object`` of a Stripe event.
+
+        Returns:
+            True when its metadata carries the wallet's type.
+        """
+        metadata: dict[str, Any] = stripe_object.get("metadata") or {}
+        return metadata.get("type") == _SUBSCRIPTION_METADATA_TYPE
 
     def _link_checkout(self, db: Session, session: dict[str, Any]) -> bool:
         """Attach the Stripe subscription + customer to the local row after checkout."""

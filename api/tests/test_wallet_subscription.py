@@ -133,7 +133,10 @@ def test_webhook_checkout_completed_links_and_starts_trial(session: Session, fak
     """Completing checkout attaches the Stripe ids and moves to trialing."""
     program = _program(session)
     wss.wallet_subscription_service.create_checkout(session, 1, program.id, success_url="s", cancel_url="c")
-    assert wss.wallet_subscription_service.handle_webhook_event(session, _checkout_event(program.id)) is True
+    assert (
+        wss.wallet_subscription_service.handle_stripe_event(session, _checkout_event(program.id))
+        == "Wallet subscription checkout linked"
+    )
     record = session.query(WalletSubscription).one()
     assert record.stripe_subscription_id == "sub_123"
     assert record.stripe_customer_id == "cus_123"
@@ -144,21 +147,54 @@ def test_webhook_subscription_past_due_cuts_access(session: Session, fake_stripe
     """A past_due subscription syncs and no longer grants access."""
     program = _program(session)
     wss.wallet_subscription_service.create_checkout(session, 1, program.id, success_url="s", cancel_url="c")
-    wss.wallet_subscription_service.handle_webhook_event(session, _checkout_event(program.id))
-    event = {
-        "type": "customer.subscription.updated",
-        "data": {
-            "object": {
-                "id": "sub_123",
-                "status": "past_due",
-                "current_period_end": 1893456000,
-                "metadata": {"program_id": str(program.id)},
-            }
-        },
-    }
-    assert wss.wallet_subscription_service.handle_webhook_event(session, event) is True
+    wss.wallet_subscription_service.handle_stripe_event(session, _checkout_event(program.id))
+    event = _subscription_event("customer.subscription.updated", program.id, status="past_due")
+    assert wss.wallet_subscription_service.handle_stripe_event(session, event) == "Wallet subscription synced"
     assert session.query(WalletSubscription).one().status == WalletSubscriptionStatus.PAST_DUE.value
     assert wss.wallet_subscription_service.is_active(session, program.id) is False
+
+
+def _subscription_event(event_type: str, program_id: int, *, status: str, metadata_type: str | None = None) -> dict:
+    """A ``customer.subscription.*`` event of the fake subscription, wallet-typed unless told otherwise."""
+    metadata = {"program_id": str(program_id), "type": metadata_type or "wallet_subscription"}
+    return {
+        "type": event_type,
+        "data": {"object": {"id": "sub_123", "status": status, "current_period_end": 1893456000, "metadata": metadata}},
+    }
+
+
+def test_a_stripe_event_of_another_product_is_left_alone(session: Session, fake_stripe: type[_FakeStripe]) -> None:
+    """A receptionist subscription or a site order shares the event types, never the wallet's metadata."""
+    program = _program(session)
+    wss.wallet_subscription_service.create_checkout(session, 1, program.id, success_url="s", cancel_url="c")
+    wss.wallet_subscription_service.handle_stripe_event(session, _checkout_event(program.id))
+    receptionist_update = _subscription_event(
+        "customer.subscription.deleted", program.id, status="canceled", metadata_type="ai_assistant_subscription"
+    )
+    untyped_update = {
+        "type": "customer.subscription.updated",
+        "data": {"object": {"id": "sub_123", "status": "canceled", "metadata": {"program_id": str(program.id)}}},
+    }
+    site_order = {
+        "type": "checkout.session.completed",
+        "data": {"object": {"id": "cs_order", "mode": "payment", "metadata": {"order_id": "12"}}},
+    }
+
+    for event in (receptionist_update, untyped_update, site_order, {"type": "invoice.paid", "data": {"object": {}}}):
+        assert wss.wallet_subscription_service.handle_stripe_event(session, event) is None
+    assert session.query(WalletSubscription).one().status == WalletSubscriptionStatus.TRIALING.value
+
+
+def test_a_wallet_event_without_its_local_row_is_still_claimed(session: Session) -> None:
+    """The metadata says it is the wallet's: the core must not hand it to another product."""
+    event = _subscription_event("customer.subscription.updated", 999, status="active")
+    event["data"]["object"]["id"] = "sub_unknown"
+
+    assert (
+        wss.wallet_subscription_service.handle_stripe_event(session, event)
+        == "Wallet subscription event ignored: no local subscription"
+    )
+    assert session.query(WalletSubscription).count() == 0
 
 
 def test_is_active_reflects_status(session: Session) -> None:
