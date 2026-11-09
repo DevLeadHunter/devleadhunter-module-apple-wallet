@@ -1,0 +1,72 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "devleadhunter-apple-wallet"
+version = "1.0.0"
+description = "Cartes de fidélité Apple Wallet : module produit optionnel de DevLeadHunter."
+requires-python = ">=3.11"
+# Only what the core does not ship already: the core provides FastAPI, SQLAlchemy, Stripe, cryptography, Pillow,
+# PyJWT and python-jose, pinned in its own requirements.txt. APNs speaks HTTP/2, hence the h2 extra of httpx.
+dependencies = ["httpx[http2]>=0.28"]
+
+[project.entry-points."devleadhunter.product_modules"]
+apple-wallet = "devleadhunter_apple_wallet.module:AppleWalletModule"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["devleadhunter_apple_wallet", "devleadhunter_apple_wallet.*"]
+
+[tool.ruff]
+# py311 = le Python du venv de production (VPS). Une cible plus récente pousse des
+# syntaxes (PEP 695) qui font crasher uvicorn au boot alors que tout est vert en local.
+target-version = "py311"
+line-length = 120
+exclude = [".venv", "venv", "__pycache__", "build"]
+
+[tool.ruff.lint]
+select = [
+  "E",    # pycodestyle
+  "W",    # pycodestyle warnings
+  "F",    # pyflakes — imports et variables morts
+  "I",    # isort — ordre des imports
+  "UP",   # pyupgrade — syntaxe périmée
+  "B",    # flake8-bugbear — pièges réels (mutable default, boucle qui capture…)
+  "C4",   # comprehensions inutilement verbeuses
+  "SIM",  # simplifications lisibles
+  "RUF",  # règles propres à ruff
+]
+ignore = [
+  "E501",    # la longueur de ligne est portée par le formateur
+  "B008",    # `Depends()` en valeur par défaut est le pattern FastAPI
+  "RUF001",  # les chaînes FR contiennent des caractères typographiques (« », —)
+  "RUF002",
+  "RUF003",
+  # Reste à traiter : ces règles remontent du vrai, mais chaque famille demande une
+  # relecture métier plutôt qu'un fix mécanique. À réactiver une famille à la fois.
+  "B904",    # 22 × `raise ... from err` manquant dans un `except`
+  "UP042",   # 16 × `class X(str, Enum)` → `StrEnum`
+  "SIM105",  # 8 × `try/except/pass` → `contextlib.suppress`
+  "RUF006",  # 7 × `asyncio.create_task` dont la référence n'est pas conservée
+  "F841",    # 6 × variable assignée jamais lue
+  "B905",    # 5 × `zip()` sans `strict=`
+  "B007",    # 2 × variable de boucle inutilisée
+  "SIM102",  # 2 × `if` imbriqués fusionnables
+  "SIM117",  # 1 × `with` imbriqués fusionnables
+]
+
+[tool.ruff.lint.per-file-ignores]
+"devleadhunter_apple_wallet/models/__init__.py" = ["F401"]   # baril de ré-exports : les imports SONT l'API du package
+
+[tool.ruff.lint.isort]
+# The module imports the core by its own top-level names: they read as their own block, between the libraries and
+# the module, the way the core lays out its imports.
+known-first-party = ["devleadhunter_apple_wallet"]
+section-order = ["future", "standard-library", "third-party", "devleadhunter-core", "first-party", "local-folder"]
+
+[tool.ruff.lint.isort.sections]
+"devleadhunter-core" = ["api", "core", "enums", "migrations", "models", "schemas", "scrappers", "seeders", "services", "tests"]
+
+[tool.ruff.format]
+quote-style = "double"
