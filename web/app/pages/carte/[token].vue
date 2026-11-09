@@ -116,8 +116,8 @@
 <script lang="ts" setup>
 import type { Ref } from 'vue'
 import { ref, onMounted } from 'vue'
-import type { WalletEnrollProgram } from '~/types/WalletEnroll'
-import { WalletEnrollService } from '~/services/walletEnrollService'
+import type { WalletEnrollProgram } from '../../types/WalletEnroll'
+import { WalletEnrollService } from '../../services/walletEnrollService'
 
 definePageMeta({
   layout: false,

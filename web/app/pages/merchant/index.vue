@@ -194,15 +194,15 @@
 <script lang="ts" setup>
 import type { ComputedRef, Ref } from 'vue'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import type { MerchantCard, MerchantCardAction, MerchantProgram, MerchantStats } from '~/types/Merchant'
+import type { MerchantCard, MerchantCardAction, MerchantProgram, MerchantStats } from '../../types/Merchant'
 import type {
   MerchantCardStatusBadge,
   MerchantFlash,
   MerchantFlashTone,
   MerchantStatTile,
-} from '~/types/MerchantDashboard'
-import { useMerchantStore } from '~/stores/merchant'
-import { MerchantService } from '~/services/merchantService'
+} from '../../types/MerchantDashboard'
+import { useMerchantStore } from '../../stores/merchant'
+import { MerchantService } from '../../services/merchantService'
 import { formatShortMonthDate } from '~/utils/date'
 
 definePageMeta({

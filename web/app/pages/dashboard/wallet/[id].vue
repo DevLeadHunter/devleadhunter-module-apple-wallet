@@ -187,10 +187,10 @@ import type {
   WalletProgramCreatePayload,
   WalletProgramForm,
   WalletProgramStatus,
-} from '~/types/WalletProgram'
-import { WalletProgramService } from '~/services/walletProgramService'
+} from '../../../types/WalletProgram'
+import { WalletProgramService } from '../../../services/walletProgramService'
 import { useToast } from '~/composables/useToast'
-import { useWalletEnrollLink } from '~/composables/useWalletEnrollLink'
+import { useWalletEnrollLink } from '../../../composables/useWalletEnrollLink'
 
 definePageMeta({
   layout: 'dashboard',

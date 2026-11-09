@@ -5,7 +5,7 @@ import type {
   MerchantProgram,
   MerchantStats,
   MerchantTokenResponse,
-} from '~/types/Merchant'
+} from '../types/Merchant'
 
 /** Resolve the API base URL from runtime config. */
 function getApiUrl(): string {

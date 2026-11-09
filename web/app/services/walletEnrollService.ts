@@ -1,4 +1,4 @@
-import type { WalletEnrollBody, WalletEnrollProgram } from '~/types/WalletEnroll'
+import type { WalletEnrollBody, WalletEnrollProgram } from '../types/WalletEnroll'
 
 /** Resolve the API base URL from runtime config. */
 function getApiUrl(): string {

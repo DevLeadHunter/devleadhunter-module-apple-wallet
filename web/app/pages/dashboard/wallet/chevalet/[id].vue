@@ -43,9 +43,9 @@
 <script lang="ts" setup>
 import type { Ref } from 'vue'
 import { ref, onMounted } from 'vue'
-import type { WalletProgram } from '~/types/WalletProgram'
-import { WalletProgramService } from '~/services/walletProgramService'
-import { useWalletEnrollLink } from '~/composables/useWalletEnrollLink'
+import type { WalletProgram } from '../../../../types/WalletProgram'
+import { WalletProgramService } from '../../../../services/walletProgramService'
+import { useWalletEnrollLink } from '../../../../composables/useWalletEnrollLink'
 
 definePageMeta({
   layout: false,

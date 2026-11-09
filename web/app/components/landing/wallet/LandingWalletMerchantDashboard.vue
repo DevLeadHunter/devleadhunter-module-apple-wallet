@@ -92,7 +92,10 @@
 </template>
 
 <script lang="ts" setup>
-import type { LandingWalletMerchantStat, LandingWalletMerchantClientRow } from '~/types/LandingWalletMerchantDashboard'
+import type {
+  LandingWalletMerchantStat,
+  LandingWalletMerchantClientRow,
+} from '../../../types/LandingWalletMerchantDashboard'
 import type { ComputedRef } from 'vue'
 import { computed } from 'vue'
 

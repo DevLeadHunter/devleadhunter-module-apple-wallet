@@ -80,7 +80,7 @@
 <script lang="ts" setup>
 import type { Ref } from 'vue'
 import { ref, onMounted } from 'vue'
-import { useMerchantStore } from '~/stores/merchant'
+import { useMerchantStore } from '../../stores/merchant'
 
 definePageMeta({
   layout: false,

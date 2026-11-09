@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import type { ComputedRef, Ref } from 'vue'
 import { ref, computed } from 'vue'
-import type { MerchantLoginCredentials, MerchantProgram, MerchantTokenResponse } from '~/types/Merchant'
-import { MerchantService } from '~/services/merchantService'
+import type { MerchantLoginCredentials, MerchantProgram, MerchantTokenResponse } from '../types/Merchant'
+import { MerchantService } from '../services/merchantService'
 
 /** localStorage key for the merchant token — namespaced so it never collides with the operator session. */
 const MERCHANT_TOKEN_KEY: string = 'merchant_token'

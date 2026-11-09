@@ -51,7 +51,7 @@
 <script lang="ts" setup>
 import type { ComputedRef, PropType } from 'vue'
 import { computed } from 'vue'
-import type { UiWalletCardPreviewProps, WalletCardQrCell } from '~/types/UiWalletCardPreview'
+import type { UiWalletCardPreviewProps, WalletCardQrCell } from '../../types/UiWalletCardPreview'
 
 /** Faithful preview of a merchant's Apple Wallet loyalty store card. */
 const props: UiWalletCardPreviewProps = defineProps({

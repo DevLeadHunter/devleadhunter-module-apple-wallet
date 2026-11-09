@@ -178,10 +178,10 @@ import type {
   WalletAutomationCreatePayload,
   WalletAutomationForm,
   WalletAutomationTrigger,
-} from '~/types/WalletAutomation'
-import type { WalletProgram, WalletProgramStatusBadge } from '~/types/WalletProgram'
-import { WalletAutomationService } from '~/services/walletAutomationService'
-import { WalletProgramService } from '~/services/walletProgramService'
+} from '../../../../types/WalletAutomation'
+import type { WalletProgram, WalletProgramStatusBadge } from '../../../../types/WalletProgram'
+import { WalletAutomationService } from '../../../../services/walletAutomationService'
+import { WalletProgramService } from '../../../../services/walletProgramService'
 import { useToast } from '~/composables/useToast'
 
 definePageMeta({

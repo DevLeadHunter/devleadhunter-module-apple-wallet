@@ -54,7 +54,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { LandingWalletPricingStat } from '~/types/LandingWalletPricing'
+import type { LandingWalletPricingStat } from '../../../types/LandingWalletPricing'
 
 const localePath: ReturnType<typeof useLocalePath> = useLocalePath()
 const { track }: { track: (event: string, properties?: Record<string, unknown> | undefined) => void } =

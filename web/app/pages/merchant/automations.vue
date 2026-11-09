@@ -187,11 +187,11 @@ import type {
   WalletAutomationCreatePayload,
   WalletAutomationForm,
   WalletAutomationTrigger,
-} from '~/types/WalletAutomation'
-import type { WalletProgramStatusBadge } from '~/types/WalletProgram'
-import type { MerchantFlash, MerchantFlashTone } from '~/types/MerchantDashboard'
-import { useMerchantStore } from '~/stores/merchant'
-import { MerchantAutomationService } from '~/services/merchantAutomationService'
+} from '../../types/WalletAutomation'
+import type { WalletProgramStatusBadge } from '../../types/WalletProgram'
+import type { MerchantFlash, MerchantFlashTone } from '../../types/MerchantDashboard'
+import { useMerchantStore } from '../../stores/merchant'
+import { MerchantAutomationService } from '../../services/merchantAutomationService'
 
 definePageMeta({
   layout: 'merchant',

@@ -2,7 +2,7 @@ import type {
   WalletAutomation,
   WalletAutomationCreatePayload,
   WalletAutomationUpdatePayload,
-} from '~/types/WalletAutomation'
+} from '../types/WalletAutomation'
 
 /** Resolve the API base URL from runtime config. */
 function getApiUrl(): string {

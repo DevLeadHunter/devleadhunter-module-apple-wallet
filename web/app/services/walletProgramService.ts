@@ -1,10 +1,10 @@
-import { ApiClient } from './api'
+import { ApiClient } from '~/services/api'
 import type {
   WalletMerchantCredentials,
   WalletProgram,
   WalletProgramCreatePayload,
   WalletProgramUpdatePayload,
-} from '~/types/WalletProgram'
+} from '../types/WalletProgram'
 
 /** Operator-side loyalty program configuration + merchant login provisioning. */
 export class WalletProgramService {

@@ -45,7 +45,7 @@
 <script lang="ts" setup>
 import type { ComputedRef } from 'vue'
 import { computed } from 'vue'
-import { useMerchantStore } from '~/stores/merchant'
+import { useMerchantStore } from '../stores/merchant'
 
 const merchantStore: ReturnType<typeof useMerchantStore> = useMerchantStore()
 const router: ReturnType<typeof useRouter> = useRouter()

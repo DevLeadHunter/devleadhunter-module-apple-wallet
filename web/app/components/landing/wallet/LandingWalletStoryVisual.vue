@@ -113,9 +113,9 @@
 
 <script lang="ts" setup>
 import type { PropType } from 'vue'
-import type { LandingWalletStoryVisualProps } from '~/types/LandingWalletStoryVisual'
+import type { LandingWalletStoryVisualProps } from '../../../types/LandingWalletStoryVisual'
 import type { LandingStoryActIndex } from '~/types/LandingStoryVisual'
-import type { WalletCardQrCell } from '~/types/UiWalletCardPreview'
+import type { WalletCardQrCell } from '../../../types/UiWalletCardPreview'
 
 // A comment between two v-if roots desyncs SSR/client attribute inheritance.
 defineOptions({ inheritAttrs: false })

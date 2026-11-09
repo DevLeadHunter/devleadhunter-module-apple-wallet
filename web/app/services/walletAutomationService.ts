@@ -1,9 +1,9 @@
-import { ApiClient } from './api'
+import { ApiClient } from '~/services/api'
 import type {
   WalletAutomation,
   WalletAutomationCreatePayload,
   WalletAutomationUpdatePayload,
-} from '~/types/WalletAutomation'
+} from '../types/WalletAutomation'
 
 /** Operator-side CRUD + broadcast for a program's loyalty automations. */
 export class WalletAutomationService {

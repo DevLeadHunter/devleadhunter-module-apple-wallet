@@ -156,8 +156,8 @@
 <script lang="ts" setup>
 import type { Ref } from 'vue'
 import { ref, onMounted } from 'vue'
-import type { WalletMerchantCredentials, WalletProgram, WalletProgramStatusBadge } from '~/types/WalletProgram'
-import { WalletProgramService } from '~/services/walletProgramService'
+import type { WalletMerchantCredentials, WalletProgram, WalletProgramStatusBadge } from '../../../types/WalletProgram'
+import { WalletProgramService } from '../../../services/walletProgramService'
 import { useToast } from '~/composables/useToast'
 
 definePageMeta({
