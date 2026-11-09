@@ -1,0 +1,14 @@
+{
+  "name": "devleadhunter-module-apple-wallet-web",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Nuxt layer of the Apple Wallet module of DevLeadHunter, extended by the core's web app",
+  "main": "./nuxt.config.ts",
+  "dependencies": {
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "@types/qrcode": "^1.5.6"
+  }
+}
