@@ -1,0 +1,189 @@
+{
+  "nav": {
+    "wallet": "Fidélité"
+  },
+  "walletLanding": {
+    "seo": {
+      "title": "DevLeadHunter — Vendez des cartes de fidélité Apple Wallet aux commerçants",
+      "description": "Le module fidélité de DevLeadHunter : une carte à tampons que les clients ajoutent dans Apple Wallet en un scan, des offres poussées sur leur écran verrouillé, un dashboard à la marque du commerçant — et un abonnement récurrent que vous encaissez chaque mois."
+    },
+    "hero": {
+      "eyebrow": "Module fidélité · Apple Wallet",
+      "titleStart": "Vendez la carte de fidélité",
+      "titleAccent": "que leurs clients ont toujours sur eux",
+      "subtitle": "Une carte à tampons qui s'installe dans Apple Wallet en un scan, et des offres qui s'affichent sur l'écran verrouillé. Vous l'installez, le commerçant la pilote — et vous encaissez chaque mois.",
+      "ctaPrimary": "Commencer gratuitement",
+      "ctaSecondary": "Voir comment ça marche",
+      "trust1": "Revenu récurrent",
+      "trust2": "1 mois d'essai offert",
+      "trust3": "Aucune appli à installer",
+      "card": {
+        "organization": "Café Mirabeau",
+        "reward": "1 café offert",
+        "offer": "-10 % ce jeudi"
+      }
+    },
+    "ticker": {
+      "ariaLabel": "Exemples de commerces équipés",
+      "item1": "Café · Lyon",
+      "item2": "Barbier · Nantes",
+      "item3": "Kebab · Bordeaux",
+      "item4": "Boulangerie · Toulouse",
+      "item5": "Institut · Lille",
+      "item6": "Food truck · Rennes",
+      "item7": "Pizzeria · Marseille",
+      "item8": "Salon de thé · Strasbourg"
+    },
+    "story": {
+      "eyebrow": "Comment ça marche",
+      "title": "Suivez une carte, du comptoir à l'écran verrouillé.",
+      "subtitle": "Du QR posé près de la caisse à l'offre qui fait revenir le client, tout s'enchaîne. Voici le trajet complet.",
+      "act1": {
+        "verb": "Créer",
+        "description": "Créez le programme en deux minutes : logo, couleurs, nombre de tampons, récompense. La carte est prête, le commerçant reçoit son accès."
+      },
+      "act2": {
+        "verb": "Scanner",
+        "description": "Le client scanne le QR posé sur le comptoir. Sa carte s'ajoute dans Apple Wallet en deux secondes — sans appli, sans formulaire."
+      },
+      "act3": {
+        "verb": "Tamponner",
+        "description": "À chaque passage, le commerçant tamponne d'un clic. Au dernier tampon, la récompense se débloque directement sur la carte."
+      },
+      "act4": {
+        "verb": "Notifier",
+        "description": "Une offre part vers toutes les cartes — ou dix minutes après un passage en caisse. Elle s'affiche sur l'écran verrouillé, et le client revient."
+      },
+      "visual": {
+        "programLabel": "Programme fidélité",
+        "programName": "Café Mirabeau",
+        "programColorsLabel": "Couleurs de la marque",
+        "programGoalLabel": "Objectif",
+        "programGoalValue": "10 tampons",
+        "programRewardLabel": "Récompense",
+        "programRewardValue": "1 café offert",
+        "programChip": "Accès commerçant envoyé",
+        "counterLabel": "Chevalet comptoir",
+        "counterHeadline": "Scannez pour votre carte",
+        "counterHint": "2 secondes · sans appli",
+        "counterBadgeAlt": "Ajouter à Apple Wallet",
+        "stampChip": "+1 tampon · à l'instant",
+        "notifLabel": "Écran verrouillé",
+        "notifSource": "Cartes",
+        "notifTitle": "Café Mirabeau",
+        "notifBody": "Votre offre du jeudi est arrivée : -10 % sur le prochain café.",
+        "notifMeta": "maintenant"
+      }
+    },
+    "notifications": {
+      "eyebrow": "Notifications écran verrouillé",
+      "title": "Le canal que personne ne peut ignorer.",
+      "description": "Pas un email qui finit dans l'onglet promotions, pas un SMS de plus : l'offre s'affiche sur l'écran verrouillé, à côté des billets de train et des cartes d'embarquement. C'est ça, la vraie valeur de la carte.",
+      "bullet1": "Automatisation : un passage en caisse déclenche l'offre quelques minutes plus tard",
+      "bullet2": "Diffusion à toute la clientèle du commerce en un clic",
+      "bullet3": "Sans numéro de téléphone ni adresse email : la carte suffit",
+      "bullet4": "Consentement recueilli à l'ajout de la carte, conforme RGPD",
+      "card": {
+        "label": "iPhone du client",
+        "time": "9:41",
+        "date": "jeudi 10 septembre",
+        "notifSource": "Cartes",
+        "notif1Title": "Café Mirabeau",
+        "notif1Body": "Encore 1 tampon et votre café est offert ☕",
+        "notif1Meta": "il y a 2 min",
+        "notif2Title": "Café Mirabeau",
+        "notif2Body": "-10 % ce jeudi, sur présentation de votre carte.",
+        "notif2Meta": "il y a 3 h"
+      }
+    },
+    "merchant": {
+      "eyebrow": "Dashboard commerçant",
+      "title": "Chaque commerçant pilote, à sa marque.",
+      "description": "Le commerçant reçoit son propre accès : ses clients, ses tampons, ses offres — habillé à ses couleurs, jamais aux vôtres. Vous restez la machine invisible derrière.",
+      "bullet1": "Clients, tampons et récompenses en temps réel",
+      "bullet2": "Tamponner ou remettre la récompense en un clic",
+      "bullet3": "Offres et relances en self-service",
+      "bullet4": "À la marque du commerce — votre outil reste invisible",
+      "card": {
+        "label": "Espace commerçant",
+        "name": "Café Mirabeau",
+        "stat1Value": "214",
+        "stat1Label": "clients",
+        "stat2Value": "38",
+        "stat2Label": "tampons / semaine",
+        "stat3Value": "12",
+        "stat3Label": "récompenses",
+        "client1Name": "Léa M.",
+        "client1Meta": "9 / 10 tampons",
+        "client2Name": "Karim B.",
+        "client2Meta": "10 / 10 · récompense à remettre",
+        "client3Name": "Jeanne P.",
+        "client3Meta": "3 / 10 tampons",
+        "actionStamp": "Tampon",
+        "actionRedeem": "Remettre"
+      }
+    },
+    "features": {
+      "eyebrow": "Sous le capot",
+      "title": "Une machine à faire revenir les clients.",
+      "adoption": {
+        "title": "Installée en un scan",
+        "description": "Apple Wallet est déjà sur chaque iPhone. Un QR au comptoir suffit : pas d'appli à télécharger, pas de compte à créer."
+      },
+      "branding": {
+        "title": "Aux couleurs du commerce",
+        "description": "Logo, couleurs, récompense : chaque carte est générée à la marque du commerçant, comme s'il l'avait fait faire sur mesure."
+      },
+      "automations": {
+        "title": "Automatisations intégrées",
+        "description": "Un passage en caisse peut déclencher une offre différée, ou une diffusion à toute la clientèle. Sans rien programmer."
+      },
+      "compliance": {
+        "title": "RGPD par construction",
+        "description": "Opt-in explicite à l'ajout de la carte, données scopées par compte, et supprimer la carte coupe tout — simplement."
+      }
+    },
+    "pricing": {
+      "eyebrow": "Tarifs",
+      "title": "Un petit abonnement. Chaque mois.",
+      "subtitle": "Le commerçant paie un abonnement léger, le premier mois est offert, et l'encaissement est automatique.",
+      "roiNote": "Un site web se vend une fois. Une carte de fidélité se vend tous les mois.",
+      "cta": "Commencer gratuitement",
+      "stat1Value": "19 €",
+      "stat1Label": "par mois et par commerce",
+      "stat2Value": "1ᵉʳ mois",
+      "stat2Label": "offert, sans engagement",
+      "stat3Value": "0 €",
+      "stat3Label": "de matériel : un QR au comptoir suffit",
+      "stat4Value": "2 min",
+      "stat4Label": "pour créer un programme"
+    },
+    "faq": {
+      "eyebrow": "FAQ",
+      "title": "Questions fréquentes.",
+      "q1": "À qui vendre ce module ?",
+      "a1": "Aux commerces de passage : cafés, barbiers, kebabs, boulangeries, instituts… Partout où les clients reviennent chaque semaine, une carte de fidélité dans le téléphone fait la différence.",
+      "q2": "Les clients du commerce doivent-ils installer une application ?",
+      "a2": "Non. Apple Wallet est préinstallé sur chaque iPhone : le client scanne le QR du comptoir, appuie sur « Ajouter », et c'est terminé.",
+      "q3": "Et les clients Android ?",
+      "a3": "Le module couvre Apple Wallet aujourd'hui. Le support Google Wallet est prévu — même carte, même dashboard, un second canal en plus.",
+      "q4": "Comment le commerçant tamponne-t-il une carte ?",
+      "a4": "Depuis son espace, en un clic sur la fiche du client. Aucun matériel à acheter, aucune caisse à changer.",
+      "q5": "Les notifications sont-elles conformes au RGPD ?",
+      "a5": "Oui. Le consentement est recueilli au moment où le client ajoute sa carte, et supprimer la carte de son Wallet arrête tout — aucune donnée superflue n'est collectée.",
+      "q6": "Combien ça coûte, et qui paie quoi ?",
+      "a6": "Le commerçant paie un abonnement de 19 € par mois, premier mois offert, sans engagement. L'encaissement est automatique via Stripe."
+    },
+    "finalCta": {
+      "title": "Les commerçants de votre ville n'attendent que leur carte.",
+      "subtitle": "Créez un compte, activez le module fidélité et installez votre premier programme aujourd'hui.",
+      "cta": "Commencer gratuitement",
+      "note": "1 mois d'essai · Sans engagement"
+    }
+  },
+  "footer": {
+    "links": {
+      "wallet": "Cartes de fidélité"
+    }
+  }
+}

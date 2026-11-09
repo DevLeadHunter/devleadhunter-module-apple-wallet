@@ -1,0 +1,189 @@
+{
+  "nav": {
+    "wallet": "Loyalty"
+  },
+  "walletLanding": {
+    "seo": {
+      "title": "DevLeadHunter — Sell Apple Wallet loyalty cards to local businesses",
+      "description": "The DevLeadHunter loyalty module: a stamp card customers add to Apple Wallet in one scan, offers pushed to their lock screen, a merchant dashboard in the shop's own brand — and a recurring subscription you collect every month."
+    },
+    "hero": {
+      "eyebrow": "Loyalty module · Apple Wallet",
+      "titleStart": "Sell the loyalty card",
+      "titleAccent": "their customers always carry",
+      "subtitle": "A stamp card that lands in Apple Wallet in one scan, and offers that show up on the lock screen. You set it up, the merchant runs it — and you collect every month.",
+      "ctaPrimary": "Start for free",
+      "ctaSecondary": "See how it works",
+      "trust1": "Recurring revenue",
+      "trust2": "1 month free trial",
+      "trust3": "No app to install",
+      "card": {
+        "organization": "Café Mirabeau",
+        "reward": "1 free coffee",
+        "offer": "-10% this Thursday"
+      }
+    },
+    "ticker": {
+      "ariaLabel": "Examples of equipped businesses",
+      "item1": "Café · Lyon",
+      "item2": "Barber · Nantes",
+      "item3": "Kebab · Bordeaux",
+      "item4": "Bakery · Toulouse",
+      "item5": "Beauty salon · Lille",
+      "item6": "Food truck · Rennes",
+      "item7": "Pizzeria · Marseille",
+      "item8": "Tea room · Strasbourg"
+    },
+    "story": {
+      "eyebrow": "How it works",
+      "title": "Follow one card, from the counter to the lock screen.",
+      "subtitle": "From the QR next to the till to the offer that brings the customer back, everything chains together. Here is the full journey.",
+      "act1": {
+        "verb": "Create",
+        "description": "Set up the program in two minutes: logo, colors, number of stamps, reward. The card is ready and the merchant receives their access."
+      },
+      "act2": {
+        "verb": "Scan",
+        "description": "The customer scans the QR on the counter. Their card lands in Apple Wallet in two seconds — no app, no form."
+      },
+      "act3": {
+        "verb": "Stamp",
+        "description": "On every visit, the merchant stamps with one click. On the last stamp, the reward unlocks right on the card."
+      },
+      "act4": {
+        "verb": "Notify",
+        "description": "An offer goes out to every card — or ten minutes after a checkout. It shows up on the lock screen, and the customer comes back."
+      },
+      "visual": {
+        "programLabel": "Loyalty program",
+        "programName": "Café Mirabeau",
+        "programColorsLabel": "Brand colors",
+        "programGoalLabel": "Goal",
+        "programGoalValue": "10 stamps",
+        "programRewardLabel": "Reward",
+        "programRewardValue": "1 free coffee",
+        "programChip": "Merchant access sent",
+        "counterLabel": "Counter stand",
+        "counterHeadline": "Scan for your card",
+        "counterHint": "2 seconds · no app",
+        "counterBadgeAlt": "Add to Apple Wallet",
+        "stampChip": "+1 stamp · just now",
+        "notifLabel": "Lock screen",
+        "notifSource": "Wallet",
+        "notifTitle": "Café Mirabeau",
+        "notifBody": "Your Thursday offer is here: -10% off your next coffee.",
+        "notifMeta": "now"
+      }
+    },
+    "notifications": {
+      "eyebrow": "Lock-screen notifications",
+      "title": "The channel nobody can ignore.",
+      "description": "Not an email lost in the promotions tab, not yet another SMS: the offer shows up on the lock screen, next to train tickets and boarding passes. That is the real value of the card.",
+      "bullet1": "Automation: a checkout triggers the offer a few minutes later",
+      "bullet2": "Broadcast to the shop's whole customer base in one click",
+      "bullet3": "No phone number or email address needed: the card is enough",
+      "bullet4": "Consent collected when the card is added, GDPR compliant",
+      "card": {
+        "label": "Customer's iPhone",
+        "time": "9:41",
+        "date": "Thursday, September 10",
+        "notifSource": "Wallet",
+        "notif1Title": "Café Mirabeau",
+        "notif1Body": "One more stamp and your coffee is free ☕",
+        "notif1Meta": "2 min ago",
+        "notif2Title": "Café Mirabeau",
+        "notif2Body": "-10% this Thursday when you show your card.",
+        "notif2Meta": "3 h ago"
+      }
+    },
+    "merchant": {
+      "eyebrow": "Merchant dashboard",
+      "title": "Every merchant runs it, in their own brand.",
+      "description": "The merchant gets their own access: their customers, their stamps, their offers — dressed in their colors, never yours. You stay the invisible machine behind it.",
+      "bullet1": "Customers, stamps and rewards in real time",
+      "bullet2": "Stamp or redeem the reward in one click",
+      "bullet3": "Self-service offers and follow-ups",
+      "bullet4": "In the shop's brand — your tool stays invisible",
+      "card": {
+        "label": "Merchant space",
+        "name": "Café Mirabeau",
+        "stat1Value": "214",
+        "stat1Label": "customers",
+        "stat2Value": "38",
+        "stat2Label": "stamps / week",
+        "stat3Value": "12",
+        "stat3Label": "rewards",
+        "client1Name": "Léa M.",
+        "client1Meta": "9 / 10 stamps",
+        "client2Name": "Karim B.",
+        "client2Meta": "10 / 10 · reward to redeem",
+        "client3Name": "Jeanne P.",
+        "client3Meta": "3 / 10 stamps",
+        "actionStamp": "Stamp",
+        "actionRedeem": "Redeem"
+      }
+    },
+    "features": {
+      "eyebrow": "Under the hood",
+      "title": "A machine that brings customers back.",
+      "adoption": {
+        "title": "Installed in one scan",
+        "description": "Apple Wallet is already on every iPhone. A QR on the counter is enough: no app to download, no account to create."
+      },
+      "branding": {
+        "title": "In the shop's colors",
+        "description": "Logo, colors, reward: every card is generated in the merchant's brand, as if they had it custom made."
+      },
+      "automations": {
+        "title": "Built-in automations",
+        "description": "A checkout can trigger a delayed offer, or a broadcast to the whole customer base. Without programming anything."
+      },
+      "compliance": {
+        "title": "GDPR by design",
+        "description": "Explicit opt-in when the card is added, data scoped per account, and deleting the card stops everything — simply."
+      }
+    },
+    "pricing": {
+      "eyebrow": "Pricing",
+      "title": "A small subscription. Every month.",
+      "subtitle": "The merchant pays a light subscription, the first month is free, and collection is automatic.",
+      "roiNote": "A website sells once. A loyalty card sells every single month.",
+      "cta": "Start for free",
+      "stat1Value": "€19",
+      "stat1Label": "per month per shop",
+      "stat2Value": "1st month",
+      "stat2Label": "free, no commitment",
+      "stat3Value": "€0",
+      "stat3Label": "of hardware: a QR on the counter is enough",
+      "stat4Value": "2 min",
+      "stat4Label": "to create a program"
+    },
+    "faq": {
+      "eyebrow": "FAQ",
+      "title": "Frequently asked questions.",
+      "q1": "Who should I sell this module to?",
+      "a1": "High-frequency local businesses: cafés, barbers, kebab shops, bakeries, beauty salons… Anywhere customers come back every week, a loyalty card in the phone makes the difference.",
+      "q2": "Do the shop's customers need to install an app?",
+      "a2": "No. Apple Wallet is preinstalled on every iPhone: the customer scans the counter QR, taps “Add”, and that's it.",
+      "q3": "What about Android customers?",
+      "a3": "The module covers Apple Wallet today. Google Wallet support is planned — same card, same dashboard, one more channel.",
+      "q4": "How does the merchant stamp a card?",
+      "a4": "From their space, with one click on the customer's row. No hardware to buy, no till to change.",
+      "q5": "Are the notifications GDPR compliant?",
+      "a5": "Yes. Consent is collected when the customer adds their card, and removing the card from their Wallet stops everything — no superfluous data is collected.",
+      "q6": "How much does it cost, and who pays what?",
+      "a6": "The merchant pays €19 a month, first month free, no commitment. Collection is automatic via Stripe."
+    },
+    "finalCta": {
+      "title": "The shops in your town are just waiting for their card.",
+      "subtitle": "Create an account, enable the loyalty module and set up your first program today.",
+      "cta": "Start for free",
+      "note": "1 month free trial · No commitment"
+    }
+  },
+  "footer": {
+    "links": {
+      "wallet": "Loyalty cards"
+    }
+  }
+}
