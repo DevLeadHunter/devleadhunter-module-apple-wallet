@@ -184,7 +184,8 @@ async def subscription_status(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> SubscriptionStatusResponse:
-    """Return a program's subscription status and whether it currently grants access."""
+    """Return the subscription status of one of the operator's programs and whether it currently grants access."""
+    _require_program(db, current_user.id, program_id)
     status_label, active = wallet_subscription_service.program_status(db, program_id)
     return SubscriptionStatusResponse(programId=program_id, status=status_label, active=active)
 
