@@ -391,17 +391,38 @@ class WalletAutomationService:
 wallet_automation_service = WalletAutomationService()
 
 
-async def run_wallet_automation_worker_loop(interval_seconds: int = _WORKER_INTERVAL_SECONDS) -> None:
-    """Periodically fire due wallet automation jobs, off the event loop.
-
-    Args:
-        interval_seconds: Delay between passes (default 60s).
+class WalletAutomationWorker:
     """
-    while True:
+    The module's background loop: fires the due automation jobs every minute, off the event loop.
+
+    The core runs it only while the module is switched on, and cancels it when the super admin switches it off.
+    """
+
+    def __init__(self, service: WalletAutomationService, interval_seconds: float = _WORKER_INTERVAL_SECONDS) -> None:
+        self._service: WalletAutomationService = service
+        self._interval_seconds: float = interval_seconds
+
+    async def run_forever(self) -> None:
+        """Fire the due jobs, then wait, forever; a failed pass is logged and the next one runs on time."""
+        while True:
+            await self.run_once()
+            await asyncio.sleep(self._interval_seconds)
+
+    async def run_once(self) -> int:
+        """
+        Fire the jobs due now, in a worker thread (the APNs push is synchronous).
+
+        Returns:
+            How many jobs fired; 0 when the pass failed.
+        """
         try:
-            fired = await asyncio.to_thread(wallet_automation_service.run_due_jobs)
-            if fired:
-                logger.info("Wallet automation worker fired %s job(s)", fired)
+            fired: int = await asyncio.to_thread(self._service.run_due_jobs)
         except Exception as exc:
             logger.exception("Wallet automation pass failed: %s", exc)
-        await asyncio.sleep(interval_seconds)
+            return 0
+        if fired:
+            logger.info("Wallet automation worker fired %s job(s)", fired)
+        return fired
+
+
+wallet_automation_worker = WalletAutomationWorker(wallet_automation_service)
