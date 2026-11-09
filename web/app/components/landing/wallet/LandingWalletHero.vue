@@ -71,7 +71,7 @@
     </div>
 
     <div class="hero-rise" :style="{ animationDelay: '450ms' }">
-      <LandingTradesTicker key-prefix="walletLanding.ticker" :item-count="8" />
+      <LandingWalletTicker />
     </div>
   </section>
 </template>
