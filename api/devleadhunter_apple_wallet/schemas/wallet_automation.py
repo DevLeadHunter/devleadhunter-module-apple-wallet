@@ -22,7 +22,6 @@ class AutomationBody(BaseModel):
 class AutomationUpdateBody(BaseModel):
     """Body to edit an automation (only the sent fields change)."""
 
-    # The model column each API field writes.
     COLUMN_BY_FIELD: ClassVar[dict[str, str]] = {
         "name": "name",
         "triggerType": "trigger_type",

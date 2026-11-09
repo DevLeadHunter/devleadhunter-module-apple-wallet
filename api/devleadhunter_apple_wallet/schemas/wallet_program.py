@@ -27,7 +27,6 @@ class WalletProgramCreateBody(BaseModel):
 class WalletProgramUpdateBody(BaseModel):
     """Body to edit a loyalty program (only the sent fields change)."""
 
-    # The model column each API field writes.
     COLUMN_BY_FIELD: ClassVar[dict[str, str]] = {
         "organizationName": "organization_name",
         "stampsRequired": "stamps_required",
@@ -40,7 +39,6 @@ class WalletProgramUpdateBody(BaseModel):
         "labelColor": "label_color",
         "status": "status",
     }
-    # Columns an explicit null must never clear.
     REQUIRED_COLUMNS: ClassVar[tuple[str, ...]] = ("organization_name", "stamps_required")
 
     organizationName: str | None = None

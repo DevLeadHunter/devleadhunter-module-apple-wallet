@@ -17,7 +17,7 @@ class MerchantLoginBody(BaseModel):
 
 
 class MerchantTokenResponse(BaseModel):
-    """A merchant access token (snake_case like the operator's login response)."""
+    """A merchant access token."""
 
     access_token: str
     token_type: str = "bearer"

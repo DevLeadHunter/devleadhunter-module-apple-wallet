@@ -5,13 +5,12 @@ Frank and short like the core's: what was prepared, through ONE link (``{lien_ca
 first name and public phone. They name the iPhone (the card lives in Apple Wallet) and never leave without the
 prospect's card demo. Written in GSM-7: smsmode appends the opt-out mention at send time, never written here.
 
-The keys, names and bodies are the ones the core shipped before the module left it, kept word for word.
+The campaigns store a template by its key: a key never changes here.
 """
 
 from enums.sms_template_category import SmsTemplateCategory
 from services.sms.templates import SmsTemplate
 
-# The core's sign-off, private to its library: copied so a card SMS keeps ending on how to answer.
 _SIGN_OFF: str = "{signature}, {telephone}"
 
 LOYALTY_CARD_SMS_TEMPLATES: list[SmsTemplate] = [

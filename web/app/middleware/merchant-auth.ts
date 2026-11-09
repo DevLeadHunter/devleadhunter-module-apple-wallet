@@ -4,7 +4,6 @@
  * @module middleware/merchant-auth
  */
 
-// Imported, not auto-imported: @pinia/nuxt only scans the host app's stores folder, never a layer's.
 import { useMerchantStore } from '../stores/merchant'
 
 export default defineNuxtRouteMiddleware(async () => {

@@ -42,8 +42,7 @@ class AppleWalletModule(ProductModule):
     )
     enabled_by_default: ClassVar[bool] = False
 
-    # Tracked by name in ``schema_migrations``, in this order: a name never changes once it has run somewhere
-    # (``add_loyalty_card_email_templates`` ran in prod while the core still owned it).
+    # Tracked by name in schema_migrations: a name never changes (add_loyalty_card_email_templates ran in prod).
     MIGRATION_NAMES: ClassVar[tuple[str, ...]] = (
         "add_wallet_loyalty_tables",
         "add_wallet_credentials_table",

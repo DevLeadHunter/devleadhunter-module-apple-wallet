@@ -38,7 +38,6 @@ _STRIPE_STATUS_MAP: dict[str, str] = {
     "incomplete": WalletSubscriptionStatus.INCOMPLETE.value,
     "incomplete_expired": WalletSubscriptionStatus.INCOMPLETE.value,
 }
-# The checkout stamps it on the session and on the subscription it creates: what makes a Stripe object the wallet's.
 _SUBSCRIPTION_METADATA_TYPE = "wallet_subscription"
 _SUBSCRIPTION_EVENT_TYPES: frozenset[str] = frozenset(
     {"customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted"}

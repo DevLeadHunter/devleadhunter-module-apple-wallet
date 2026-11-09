@@ -22,19 +22,13 @@
 </template>
 
 <script lang="ts" setup>
-/**
- * The wallet landing's infinite « business · city » marquee: the core's trades ticker, fed with the businesses that
- * hand out a loyalty card (the core's ticker reads its own trades and takes no other list).
- */
 import type { ComputedRef } from 'vue'
 import { computed } from 'vue'
 
 const { t }: { t: (key: string, params?: Record<string, unknown>) => string } = useI18n()
 
-/** Number of business examples in the `walletLanding.ticker` i18n namespace. */
 const tickerItemCount: number = 8
 
-/** « Business · city » examples scrolled in the ticker. */
 const tickerItems: ComputedRef<string[]> = computed((): string[] =>
   Array.from({ length: tickerItemCount }, (_: unknown, index: number): string =>
     t(`walletLanding.ticker.item${index + 1}`),

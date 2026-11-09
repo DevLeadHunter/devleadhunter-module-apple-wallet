@@ -7,8 +7,7 @@ name = "devleadhunter-apple-wallet"
 version = "1.0.0"
 description = "Cartes de fidélité Apple Wallet : module produit optionnel de DevLeadHunter."
 requires-python = ">=3.11"
-# Only what the core does not ship already: the core provides FastAPI, SQLAlchemy, Stripe, cryptography, Pillow,
-# PyJWT and python-jose, pinned in its own requirements.txt. APNs speaks HTTP/2, hence the h2 extra of httpx.
+# Only what the core lacks (its requirements.txt pins the rest): HTTP/2, which the APNs pushes require.
 dependencies = ["httpx[http2]>=0.28"]
 
 [project.entry-points."devleadhunter.product_modules"]
@@ -56,12 +55,7 @@ ignore = [
   "SIM117",  # 1 × `with` imbriqués fusionnables
 ]
 
-[tool.ruff.lint.per-file-ignores]
-"devleadhunter_apple_wallet/models/__init__.py" = ["F401"]   # baril de ré-exports : les imports SONT l'API du package
-
 [tool.ruff.lint.isort]
-# The module imports the core by its own top-level names: they read as their own block, between the libraries and
-# the module, the way the core lays out its imports.
 known-first-party = ["devleadhunter_apple_wallet"]
 section-order = ["future", "standard-library", "third-party", "devleadhunter-core", "first-party", "local-folder"]
 

@@ -1,7 +1,7 @@
 """Write the loyalty-card cold emails (« Carte fidélité - … ») on the admin's email library.
 
-Already applied in production under this very name, when the templates still lived in the core: the runner skips it
-there. Wherever it has not run, it upserts the five templates of the module on the admin's LIBRARY rows
+Already applied in production under this very name: the runner skips it there. Wherever it has not run, it upserts
+the five templates of the module on the admin's LIBRARY rows
 (``is_library = 1``): an existing row gets the canonical subject, body, variables, category and sort order (and the
 admin's preferred signature when it has none); a missing one is inserted, plain. The templates the admin wrote himself
 (``is_library = 0``) are never touched. Without the admin user — a fresh database, seeded after the migrations — it

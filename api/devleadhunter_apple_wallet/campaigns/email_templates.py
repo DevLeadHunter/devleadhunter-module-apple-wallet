@@ -6,8 +6,7 @@ single light ask. The card lives in Apple Wallet: the emails speak of the iPhone
 name neither Apple, Wallet nor iPhone. They never say « DevLeadHunter »: the merchant only knows the person who writes.
 Three first emails and two follow-ups; ``sort_order`` pins the frank first contact and the frank follow-up first.
 
-Matched by name by the seeder, which never rewrites a row it finds. The names and texts are the ones the core shipped
-(and seeded in prod) before the module left it, kept word for word.
+The seeder and the library rows already seeded in prod match them by name: a name never changes here.
 """
 
 from enums.email_template_category import EmailTemplateCategory
@@ -15,8 +14,6 @@ from enums.email_template_category import EmailTemplateCategory
 _FIRST: str = EmailTemplateCategory.FIRST_EMAIL.value
 _FOLLOW: str = EmailTemplateCategory.FOLLOW_UP.value
 
-# The ask that closes every email of the core's library. Copied, not imported: it is private to the core's seeder, and
-# the card's emails must not change when the core rewords its own.
 _SINGLE_ASK_WITH_EXIT: str = (
     "<p>Un mot me suffit : oui, non, ou une question. Si c'est non, dites-le-moi et je ne vous recontacte plus.</p>"
 )

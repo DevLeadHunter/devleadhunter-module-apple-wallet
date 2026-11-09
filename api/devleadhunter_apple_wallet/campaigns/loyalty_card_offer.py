@@ -1,9 +1,8 @@
 """The loyalty card, as the core's campaign engine sells it.
 
-No prospect has a card demo yet: no page shows a prospect the card prepared for him. So ``{lien_carte}`` renders
-empty, and every email or SMS linking it is held back on every send path with the reason the dashboard shows,
-« Pas de démo de carte de fidélité pour ce prospect » — word for word what the core did before the module left it.
-``{prix_carte}`` is the merchant's monthly price, in the prospect's currency.
+No page shows a prospect the card prepared for him, so no prospect has a card demo: ``{lien_carte}`` renders empty,
+and every email or SMS linking it is held back on every send path with the reason the dashboard shows, « Pas de démo
+de carte de fidélité pour ce prospect ». ``{prix_carte}`` is the merchant's monthly price, in the prospect's currency.
 """
 
 from __future__ import annotations
@@ -29,7 +28,7 @@ class LoyaltyCardOffer(CampaignOffer):
     """
     The card offer of the Apple Wallet module: its template variables, its guards and its SMS templates.
 
-    Not sellable yet (no card demo to link): the core refuses its templates outright.
+    Not sellable (no card demo to link): the core refuses its templates outright.
     """
 
     CARD_LINK: ClassVar[str] = "lien_carte"
@@ -52,7 +51,7 @@ class LoyaltyCardOffer(CampaignOffer):
 
     def has_active_offer(self, db: Session, *, prospect_id: int, user_id: int) -> bool:
         """
-        Whether the prospect has a card demo to link: never, until the card gets a demo page.
+        Whether the prospect has a card demo to link: never, no page shows a prospect his card.
 
         Args:
             db: Active database session.
