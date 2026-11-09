@@ -1,6 +1,9 @@
 import type { WalletEnrollBody, WalletEnrollProgram } from '../types/WalletEnroll'
 
-/** Resolve the API base URL from runtime config. */
+/**
+ * Resolve the API base URL from runtime config.
+ * @returns The API origin, without the `/api/v1` prefix.
+ */
 function getApiUrl(): string {
   const config: ReturnType<typeof useRuntimeConfig> = useRuntimeConfig()
   return config.public.apiBase

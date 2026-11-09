@@ -7,7 +7,10 @@ import type {
   MerchantTokenResponse,
 } from '../types/Merchant'
 
-/** Resolve the API base URL from runtime config. */
+/**
+ * Resolve the API base URL from runtime config.
+ * @returns The API origin, without the `/api/v1` prefix.
+ */
 function getApiUrl(): string {
   const config: ReturnType<typeof useRuntimeConfig> = useRuntimeConfig()
   return config.public.apiBase
