@@ -15,6 +15,7 @@ import pytest
 
 from enums.email_template_category import EmailTemplateCategory
 from enums.sms_template_category import SmsTemplateCategory
+from seeders.email_template_seeder import EMAIL_TEMPLATE_LIBRARY
 from services.country_profiles import CountryProfiles
 from services.sms.gsm_segments import is_gsm7, to_gsm7
 from services.sms.templates import SmsTemplate, find_sms_template, list_sms_templates
@@ -150,6 +151,14 @@ class TestLibraryShape:
         sms_categories = [template.category for template in _LOYALTY_CARD_SMS]
         assert sms_categories.count(SmsTemplateCategory.FIRST_CONTACT) >= 2
         assert sms_categories.count(SmsTemplateCategory.FOLLOW_UP) >= 2
+
+    def test_the_card_email_names_are_unique_and_none_is_a_core_one(self) -> None:
+        """The seeder matches the shared library by name: a card email shares it with no other template."""
+        card_names = [str(template["name"]) for template in _LOYALTY_CARD_EMAILS]
+        core_names = {str(template["name"]) for template in EMAIL_TEMPLATE_LIBRARY}
+
+        assert len(card_names) == len(set(card_names))
+        assert core_names.isdisjoint(card_names)
 
     def test_emails_share_the_email_library_dict_shape(self) -> None:
         known_categories = {category.value for category in EmailTemplateCategory}
