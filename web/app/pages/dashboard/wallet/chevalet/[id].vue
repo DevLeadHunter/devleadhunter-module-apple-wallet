@@ -49,7 +49,7 @@ import { useWalletEnrollLink } from '../../../../composables/useWalletEnrollLink
 
 definePageMeta({
   layout: false,
-  middleware: ['auth'],
+  middleware: ['auth', 'apple-wallet-module'],
 })
 
 useSeoMeta({

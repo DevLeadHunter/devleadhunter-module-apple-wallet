@@ -194,7 +194,7 @@ import { useWalletEnrollLink } from '../../../composables/useWalletEnrollLink'
 
 definePageMeta({
   layout: 'dashboard',
-  middleware: ['auth'],
+  middleware: ['auth', 'apple-wallet-module'],
 })
 
 /** Brand-color presets offered as one-tap ambiances. */

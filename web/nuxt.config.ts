@@ -28,6 +28,11 @@ export default defineNuxtConfig({
     },
   },
 
+  // The module is off by default: its public pages stay out of the sitemap.
+  sitemap: {
+    exclude: ['/apple-wallet', '/merchant', '/merchant/**', '/carte/**'],
+  },
+
   i18n: {
     locales: [
       { code: 'en', language: 'en-US', file: 'en.json' },

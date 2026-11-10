@@ -186,7 +186,7 @@ import { useToast } from '~/composables/useToast'
 
 definePageMeta({
   layout: 'dashboard',
-  middleware: ['auth'],
+  middleware: ['auth', 'apple-wallet-module'],
 })
 
 /** Selectable triggers. */
